@@ -2,6 +2,14 @@
 name = "rtile"
 version = "0.1.0"
 edition = "2021"
+description = "Provides a way to work with rectangular areas of text as atomic units. Can be used for code generation or to generate any pattern of text."
+license-file = "LICENSE.txt"
+documentation = "https://docs.rs/rtile"
+repository = "https://github.com/madanmohany/rtile"
+readme = "README.md"
+keywords = ["code-generation", "template"]
+categories = ["template-engine"]
+publish = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
