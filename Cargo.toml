@@ -1,11 +1,10 @@
 [package]
 name = "rtile"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 exclude = ["/tests"]
 description = "code generation"
 license = "MIT"
-documentation = "https://docs.rs/rtile"
 repository = "https://github.com/madanmohany/rtile"
 readme = "README.md"
 keywords = ["code-generation", "template"]
