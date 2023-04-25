@@ -1,6 +1,8 @@
 # RTile
 
-RTile is a simple Rust lib module meant to help with code generation. It provides a way to work with rectangular areas of text as atomic units.
+RTile is a simple Rust lib module meant to help with code generation.
+It provides a way to work with rectangular areas of text as atomic units.
+Can be used with nightly build only, till the feature 'local_key_cell_methods' is stabilized.
 
 Inspired by a python module [tiles](https://github.com/sustrik/tiles), developed by [Martin Sustrik](https://github.com/sustrik).
 
