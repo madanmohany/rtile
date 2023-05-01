@@ -7,7 +7,7 @@ description = "text processing"
 license = "MIT"
 repository = "https://github.com/madanmohany/rtile"
 readme = "README.md"
-keywords = ["text processing"]
+keywords = ["template"]
 categories = ["template-engine"]
 
 [lib]
