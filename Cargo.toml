@@ -1,13 +1,13 @@
 [package]
 name = "rtile"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 exclude = ["/tests"]
-description = "code generation"
+description = "text processing"
 license = "MIT"
 repository = "https://github.com/madanmohany/rtile"
 readme = "README.md"
-keywords = ["code-generation", "template"]
+keywords = ["text processing"]
 categories = ["template-engine"]
 
 [lib]
