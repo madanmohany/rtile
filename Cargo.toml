@@ -1,6 +1,6 @@
 [package]
 name = "rtile"
-version = "0.1.6"
+version = "0.0.7"
 edition = "2021"
 exclude = ["/tests"]
 description = "text processing"
@@ -13,7 +13,7 @@ categories = ["template-engine"]
 
 [lib]
 name = "rtile"
-crate-type = ["cdylib", "rlib"]
+crate-type = ["dylib", "rlib"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
