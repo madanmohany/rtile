@@ -1,10 +1,11 @@
 [package]
 name = "rtile"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 exclude = ["/tests"]
 description = "text processing"
 license = "MIT"
+documentation = "https://docs.rs/rtile/latest/rtile"
 repository = "https://github.com/madanmohany/rtile"
 readme = "README.md"
 keywords = ["template"]
@@ -12,6 +13,7 @@ categories = ["template-engine"]
 
 [lib]
 name = "rtile"
+crate-type = ["cdylib", "rlib"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

@@ -946,12 +946,7 @@ mod tests {
                              ----------------------------------------
                      "#);
 
-        let s_raw = sr!(r#"   
-                         @{another_tile_one}             @{another_tile_two}     
-                                 @{another_tile_three}- @{other_tiles}
-                             0   1   2   3   4   5   6   7   8   9
-                             ----------------------------------------
-                     "#);
+        let s_raw = sr!(tile);
         let result = "@{another_tile_one}             @{another_tile_two}\n        @{another_tile_three}- @{other_tiles}\n    0   1   2   3   4   5   6   7   8   9\n    ----------------------------------------".to_string();
         assert_eq!(tile.raw(), result);
         assert_eq!(s_raw, result);
@@ -1731,9 +1726,18 @@ mod tests {
     }
 
     #[test]
-    fn test_ks_macro() {
-        let val = k!("one");
-        assert_eq!(ks!(val), "one");
+    fn test_ks_macro_one() {
+        let val = k!("   one   ");
+        assert_eq!(ks!(val), "   one   ");
+    }
+    
+    #[test]
+    fn test_ks_macro_two(){
+        kp!(numbers, "   1, 2, 3   ");
+        kp!(alphabets, "   a, b, c, d   ");
+        let result = ks!("Numbers: [@{numbers}]
+                          Alphabets: [@{alphabets}]");
+        assert_eq!(result, "Numbers: [   1, 2, 3   ]\n                          Alphabets: [   a, b, c, d   ]");
     }
 
     #[test]

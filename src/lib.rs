@@ -18,6 +18,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+//!
+//! rtile provides a way to work with rectangular areas of text as atomic units.
+//! 
+
+#![warn(missing_docs)]
 #![feature(local_key_cell_methods)]
 
 use std::any::type_name;
@@ -35,6 +40,15 @@ use std::ops::BitOr;
 use std::ops::BitOrAssign;
 use std::panic::RefUnwindSafe;
 
+///
+/// give a name to a tile using any string literal and persist it in tls (thread local storage)
+/// ```
+/// use rtile::*;
+/// let tile = t!("tile value");
+/// stp!(persisted_tile_name, tile);
+/// assert_eq!("tile value".to_string(), t!("@{persisted_tile_name}").to_string());
+/// ```
+///
 #[macro_export]
 macro_rules! stp {
     ($i: ident, $t: expr) => {{
@@ -43,6 +57,16 @@ macro_rules! stp {
     }};
 }
 
+///
+/// give a name to a tile using a variable containing a string value and persist it in tls (thread local storage)
+/// ```
+/// use rtile::*;
+/// let tile = t!("tile value");
+/// let name_of_the_persisted_tile = "persisted_tile_name";
+/// stq!(name_of_the_persisted_tile, tile);
+/// assert_eq!("tile value".to_string(), t!("@{persisted_tile_name}").to_string());
+/// ```
+///
 #[macro_export]
 macro_rules! stq {
     ($e: expr, $t: expr) => {{
@@ -51,6 +75,16 @@ macro_rules! stq {
     }};
 }
 
+///
+/// get the tile which is persisted in the tls (thread local storage)
+/// ```
+/// use rtile::*;
+/// let tile = t!("tile value");
+/// stp!(persisted_tile_name, tile);
+/// let result = gtp!(persisted_tile_name).unwrap();
+/// assert_eq!(tile, result);
+/// ```
+///
 #[macro_export]
 macro_rules! gtp {
     ($i: ident) => {{
@@ -58,6 +92,17 @@ macro_rules! gtp {
     }};
 }
 
+///
+/// get the tile which is persisted in the tls (thread local storage) using a variable containing a string value
+/// ```
+/// use rtile::*;
+/// let tile = t!("tile value");
+/// stp!(persisted_tile_name, tile);
+/// let name_of_the_persisted_tile = "persisted_tile_name";
+/// let result = gtq!(name_of_the_persisted_tile).unwrap();
+/// assert_eq!(tile, result);
+/// ```
+///
 #[macro_export]
 macro_rules! gtq {
     ($e: expr) => {{
@@ -66,13 +111,14 @@ macro_rules! gtq {
     }};
 }
 
+#[doc(hidden)]
 ///
 /// Tiles with trimming
 ///
 /// t - trim white spaces - do_trimming: true
 ///
-
 pub trait MacroAttributeForT {
+    #[doc(hidden)]
     fn process(&self) -> RTile;
 }
 
@@ -100,6 +146,12 @@ impl MacroAttributeForT for RTile {
     }
 }
 
+impl MacroAttributeForT for &RTile {
+    fn process(&self) -> RTile {
+        RTile::construct_from_str(self.to_string().as_str())
+    }
+}
+
 impl MacroAttributeForT for Vec<&str> {
     fn process(&self) -> RTile {
         RTile::new_str(self.clone())
@@ -112,6 +164,46 @@ impl MacroAttributeForT for Vec<String> {
     }
 }
 
+/// tf! is used to flatten the multilines of the tile output into a single string
+/// 
+/// ```
+/// use rtile::*;
+/// tp!(
+///     tft_inner_tile_m2,
+///     "
+///             seven,
+///     "
+/// );
+/// tp!(
+///     tft_inner_tile_m1,
+///     "
+///             six,
+///             @{tft_inner_tile_m2}
+///             eight,
+///     "
+/// );
+/// let input_tile = t!("
+///             one,
+///             two,
+///             three,
+///             four,
+///             five,
+///             @{tft_inner_tile_m1}
+///             nine,
+///             ten
+/// ");
+/// let output = tf!(input_tile);
+/// let expected_output = "one,two,three,four,five,six,seven,eight,nine,ten".to_string();
+/// assert_eq!(output, expected_output);
+/// 
+/// let v1 = vec!["  one  ", "  two  ", "  three  "];
+/// let v2 = vec!["  1  ", "  2  ", "  3  "];
+/// let k1 = k!(v1);
+/// let k2 = k!(v2);
+/// let val = k1 + k2;
+/// assert_eq!(tf!(val), "one      1two      2three    3");
+/// ```
+///        
 #[macro_export]
 macro_rules! tf {
     ($t: expr) => {{
@@ -125,6 +217,39 @@ macro_rules! tf {
     }};
 }
 
+/// t! is to expand any inner tiles and to trim the white spaces around the block of text and return a tile
+/// 
+/// ```
+/// use rtile::*;
+/// tp!(
+///     tft_inner_tile_m2,
+///     "
+///             seven,
+///     "
+/// );
+/// tp!(
+///     tft_inner_tile_m1,
+///     "
+///             six,
+///             @{tft_inner_tile_m2}
+///             eight,
+///     "
+/// );
+/// let input_tile = t!("
+///             one,
+///             two,
+///             three,
+///             four,
+///             five,
+///             @{tft_inner_tile_m1}
+///             nine,
+///             ten
+/// ");
+/// let output = t!(input_tile).to_string();
+/// let expected_output = "one,\ntwo,\nthree,\nfour,\nfive,\nsix,\nseven,\neight,\nnine,\nten".to_string();
+/// assert_eq!(output, expected_output);
+/// ```
+///   
 #[macro_export]
 macro_rules! t {
     () => {{
@@ -146,6 +271,38 @@ macro_rules! t {
     }};
 }
 
+/// tp! is to used to persist the tile into the tls (thread local storage), with a given name (string literal) and return a tile
+/// 
+/// ```
+/// use rtile::*;
+/// tp!(
+///     inner_tile_one,
+///     "
+///             one
+/// 
+///             two
+///     "
+/// );
+/// tp!(
+///     inner_tile_two,
+///     "
+///             three
+///             four
+///             five
+///     "
+/// );
+/// let input_tile = t!("
+///             @{inner_tile_one} @{inner_tile_two}
+/// ");
+/// let output = t!(input_tile).to_string();
+/// let expected_output = ts!("
+///                          one three
+///                              four
+///                          two five
+///                          ");
+/// assert_eq!(output, expected_output);
+/// ```
+///   
 #[macro_export]
 macro_rules! tp {
     ($i:ident) => {{
@@ -172,6 +329,41 @@ macro_rules! tp {
     }};
 }
 
+/// tq! is to used to persist the tile into the tls (thread local storage), with a variable having a string value and return a tile
+/// 
+/// ```
+///         
+/// use rtile::*;
+/// let persisted_tile_one = "inner_tile_one";
+/// let persisted_tile_two = "inner_tile_two";
+/// tq!(
+///     persisted_tile_one,
+///     "
+///             one
+/// 
+///             two
+///     "
+/// );
+/// tq!(
+///     persisted_tile_two,
+///     "
+///             three
+///             four
+///             five
+///     "
+/// );
+/// let input_tile = t!("
+///             @{inner_tile_one} @{inner_tile_two}
+/// ");
+/// let output = t!(input_tile).to_string();
+/// let expected_output = ts!("
+///                          one three
+///                              four
+///                          two five
+///                          ");
+/// assert_eq!(output, expected_output);
+/// ```
+///  
 #[macro_export]
 macro_rules! tq {
     ($e:expr) => {{
@@ -201,6 +393,15 @@ macro_rules! tq {
     }};
 }
 
+/// tt! is to used to expand the inner tiles and return the expanded ouput as a trimmed tile
+/// 
+/// ```
+/// use rtile::*;
+/// 
+/// tp!(numbers, "1, 2, 3, 4, 5");
+/// let result = tt!("Numbers: @{numbers}");
+/// assert_eq!(result.to_string(), "Numbers: 1, 2, 3, 4, 5".to_string());
+/// ```
 #[macro_export]
 macro_rules! tt {
     ($e:expr) => {{
@@ -212,6 +413,15 @@ macro_rules! tt {
     }};
 }
 
+/// ttp! is to used to expand the inner tiles, persist the result to tls (thread local storage) using a string literal and return a trimmed tile
+/// 
+/// ```
+/// use rtile::*;
+/// 
+/// tp!(numbers, "1, 2, 3, 4, 5");
+/// ttp!(numbers, "Numbers: @{numbers}");
+/// assert_eq!(t!("@{numbers}").to_string(), "Numbers: 1, 2, 3, 4, 5".to_string());
+/// ```
 #[macro_export]
 macro_rules! ttp {
     ($i:ident, $e:expr) => {{
@@ -231,6 +441,16 @@ macro_rules! ttp {
     }};
 }
 
+/// ttq! is to used to expand the inner tiles, persist the result to tls (thread local storage) using a variable name and return a trimmed tile
+/// 
+/// ```
+/// use rtile::*;
+/// 
+/// tp!(numbers, "1, 2, 3, 4, 5");
+/// let persisted_tile_name = "numbers";
+/// ttq!(persisted_tile_name, "Numbers: @{numbers}");
+/// assert_eq!(t!("@{numbers}").to_string(), "Numbers: 1, 2, 3, 4, 5".to_string());
+/// ```
 #[macro_export]
 macro_rules! ttq {
     ($e:expr, $val:expr) => {{
@@ -252,10 +472,21 @@ macro_rules! ttq {
     }};
 }
 
+/// sr! returns the trimmed raw data of a tile
+/// 
+/// ```
+/// use rtile::*;
+/// let tile = t!("
+///                @{numbers}
+///                @{alphabets}
+///                ");
+/// let result = sr!(tile);
+/// assert_eq!(result, "@{numbers}\n@{alphabets}".to_string());
+/// ```
 #[macro_export]
 macro_rules! sr {
     ($e:expr) => {{
-        t!($e).raw()
+        $e.raw()
     }};
     ($($arg:tt)*) => {{
         let val = format!($($arg)*);
@@ -263,6 +494,17 @@ macro_rules! sr {
     }};
 }
 
+/// ts! is to expand any inner tiles and to trim the white spaces around the block of text and return a String
+/// ```
+/// use rtile::*;
+/// tp!(numbers, "1, 2, 3");
+/// tp!(alphabets, "a, b, c, d");
+/// let result = ts!("
+///                 @{numbers}
+///                 @{alphabets}
+///                 ");
+/// assert_eq!(result, "1, 2, 3\na, b, c, d");
+/// ```
 #[macro_export]
 macro_rules! ts {
     () => {{
@@ -277,13 +519,14 @@ macro_rules! ts {
     }};
 }
 
+#[doc(hidden)]
 ///
 /// Tiles without trimming
 ///
 /// k - keep white spaces - do_trimming: false
 ///
-
 pub trait MacroAttributeForK {
+    #[doc(hidden)]
     fn process(&self) -> RTile;
 }
 
@@ -311,6 +554,12 @@ impl MacroAttributeForK for RTile {
     }
 }
 
+impl MacroAttributeForK for &RTile {
+    fn process(&self) -> RTile {
+        RTile::from_str_without_trimming(self.to_string().as_str())
+    }
+}
+
 impl MacroAttributeForK for Vec<&str> {
     fn process(&self) -> RTile {
         RTile::new_without_trimming_str(self.clone())
@@ -323,6 +572,22 @@ impl MacroAttributeForK for Vec<String> {
     }
 }
 
+/// kf! is used to flatten the multilines of the tile output into a single string, without trimming the white spaces. i.e. keep the white spaces
+/// 
+/// ```
+/// use rtile::*;
+/// let v1 = vec!["  one  ", "  two  ", "  three  "];
+/// let val = k!(v1);
+/// assert_eq!(kf!(val), "  one    two    three  ");
+/// 
+/// let v1 = vec!["  one  ", "  two  ", "  three  "];
+/// let v2 = vec!["  1  ", "  2  ", "  3  "];
+/// let k1 = k!(v1);
+/// let k2 = k!(v2);
+/// let val = k1 + k2;
+/// assert_eq!(kf!(val), "  one      1    two      2    three    3  ");
+/// ```
+///        
 #[macro_export]
 macro_rules! kf {
     ($t: expr) => {{
@@ -330,6 +595,15 @@ macro_rules! kf {
     }};
 }
 
+/// k! is to expand any inner tiles, to keep the white spaces (i.e. do not trim any white spaces around the block) and return a tile
+/// 
+/// ```
+/// use rtile::*;
+/// 
+/// let v1 = vec!["  one  ", "  two  ", "  three  "];
+/// let val = k!(v1);
+/// assert_eq!(val.to_string(), "  one  \n  two  \n  three  ");
+/// ```
 #[macro_export]
 macro_rules! k {
     () => {{
@@ -351,6 +625,17 @@ macro_rules! k {
     }};
 }
 
+/// kp! is to expand any inner tiles, to keep the white spaces (i.e. do not trim any white spaces around the block), with a given name (string literal) and return a tile
+/// 
+/// ```
+/// use rtile::*;
+/// 
+/// kp!(tile_1, " abc ");
+/// kp!(tile_2, "@{tile_1}");
+///
+/// let result = k!("@{tile_2}");
+/// assert_eq!(ks!(result), " abc ");
+/// ```
 #[macro_export]
 macro_rules! kp {
     ($i:ident) => {{
@@ -377,6 +662,19 @@ macro_rules! kp {
     }};
 }
 
+/// kq! is to expand any inner tiles, to keep the white spaces (i.e. do not trim any white spaces around the block), with a variable having a string value and return a tile
+/// 
+/// ```
+/// use rtile::*;
+/// let t1 = "tile_1";
+/// let t2 = "tile_2";
+/// 
+/// kq!(t1, " abc ");
+/// kq!(t2, "@{tile_1}");
+///
+/// let result = k!("@{tile_2}");
+/// assert_eq!(ks!(result), " abc ");
+/// ```
 #[macro_export]
 macro_rules! kq {
     ($e:expr) => {{
@@ -406,6 +704,15 @@ macro_rules! kq {
     }};
 }
 
+/// kk! is to used to expand the inner tiles, by keeping the white spaces (i.e. do not trim any white spaces around the block) and return a tile
+/// 
+/// ```
+/// use rtile::*;
+/// 
+/// kp!(numbers, "     1, 2, 3, 4, 5     ");
+/// let result = kk!("  Numbers: @{numbers}  ");
+/// assert_eq!(result.to_string(), "  Numbers:      1, 2, 3, 4, 5       ".to_string());
+/// ```
 #[macro_export]
 macro_rules! kk {
     ($e:expr) => {{
@@ -417,6 +724,15 @@ macro_rules! kk {
     }};
 }
 
+/// kkp! is to used to expand the inner tiles, by keeping the white spaces (i.e. do not trim any white spaces around the block), persist the result to tls (thread local storage) using a string literal and return a tile 
+/// 
+/// ```
+/// use rtile::*;
+/// 
+/// kp!(numbers, "     1, 2, 3, 4, 5     ");
+/// kkp!(numbers, "  Numbers: @{numbers}  ");
+/// assert_eq!(ks!("@{numbers}"), "  Numbers:      1, 2, 3, 4, 5       ".to_string());
+/// ```
 #[macro_export]
 macro_rules! kkp {
     ($i:ident, $e:expr) => {{
@@ -436,6 +752,15 @@ macro_rules! kkp {
     }};
 }
 
+/// kkq! is to used to expand the inner tiles, by keeping the white spaces (i.e. do not trim any white spaces around the block), persist the result to tls (thread local storage) using a variable having a string value and return a tile 
+/// 
+/// ```
+/// use rtile::*;
+/// let tile_name = "numbers";
+/// kq!(tile_name, "     1, 2, 3, 4, 5     ");
+/// kkq!(tile_name, "  Numbers: @{numbers}  ");
+/// assert_eq!(ks!("@{numbers}"), "  Numbers:      1, 2, 3, 4, 5       ".to_string());
+/// ```
 #[macro_export]
 macro_rules! kkq {
     ($e:expr, $val:expr) => {{
@@ -457,6 +782,15 @@ macro_rules! kkq {
     }};
 }
 
+/// ks! is to expand any inner tiles by keeping the white spaces (i.e. do not trim any white spaces around the block) and return a String
+/// ```
+/// use rtile::*;
+/// kp!(numbers, "   1, 2, 3   ");
+/// kp!(alphabets, "   a, b, c, d   ");
+/// let result = ks!("Numbers: [@{numbers}]
+///                   Alphabets: [@{alphabets}]");
+/// assert_eq!(result, "Numbers: [   1, 2, 3   ]\n                  Alphabets: [   a, b, c, d   ]");
+/// ```
 #[macro_export]
 macro_rules! ks {
     () => {{
@@ -476,14 +810,20 @@ thread_local! {
     static TL_RAW_TILES: RefCell<HashMap<String, RTile>> = RefCell::new(HashMap::new());
 }
 
+#[no_mangle]
+#[doc(hidden)]
 pub fn set_tiles(key: String, value: String) {
     TL_PROCESSED_TILES.with_borrow_mut(|v| v.insert(key, value));
 }
 
+#[no_mangle]
+#[doc(hidden)]
 pub fn set_raw_tiles(key: String, value: RTile) {
     TL_RAW_TILES.with_borrow_mut(|v| v.insert(key, value));
 }
 
+#[no_mangle]
+#[doc(hidden)]
 pub fn get_raw_tile(key: &str) -> Option<RTile> {
     let key = &key.to_string();
 
@@ -497,17 +837,57 @@ pub fn get_raw_tile(key: &str) -> Option<RTile> {
     })
 }
 
+/// remove_tile, used to remove a tile by name from the tls (thread local storage)
+/// ```
+/// use rtile::*;
+/// 
+/// tp!(tile1, "one");
+/// tp!(tile2, "two");
+/// assert_eq!(ts!("@{tile1}-@{tile2}"), "one-two".to_string());
+/// //remove the tile
+/// remove_tile("tile1");
+/// //If the tile is not present, a blank tile would be created using that name
+/// assert_eq!(ts!("@{tile1}-@{tile2}"), "-two".to_string());
+/// remove_tile("tile2");
+/// //If the tile is not present, a blank tile would be created using that name
+/// assert_eq!(ts!("@{tile1}-@{tile2}"), "-".to_string());
+/// ```
+#[no_mangle]
 pub fn remove_tile(key: &str) {
     let key = &key.to_string();
     TL_RAW_TILES.with_borrow_mut(|v| v.remove(key));
     TL_PROCESSED_TILES.with_borrow_mut(|v| v.remove(key));
 }
 
+/// clear_tiles, used to remove all tiles from the tls (thread local storage)
+/// ```
+/// use rtile::*;
+/// 
+/// tp!(tile1, "one");
+/// tp!(tile2, "two");
+/// assert_eq!(ts!("@{tile1}-@{tile2}"), "one-two".to_string());
+/// //remove the tile
+/// clear_tiles();
+/// //If the tile is not present, a blank tile would be created using that name
+/// assert_eq!(ts!("@{tile1}-@{tile2}"), "-".to_string());
+/// ```
+#[no_mangle]
 pub fn clear_tiles() {
     TL_RAW_TILES.with_borrow_mut(|v| v.clear());
     TL_PROCESSED_TILES.with_borrow_mut(|v| v.clear());
 }
 
+/// get_blank_tiles, used to return blank tiles stored in the tls (thread local storage)
+/// ```
+/// use rtile::*;
+/// 
+/// tt!("@{tile1}-@{tile2}");
+/// 
+/// let result = get_blank_tiles();
+/// assert_eq!(result.contains(&"tile1".to_string()), true);
+/// assert_eq!(result.contains(&"tile2".to_string()), true);
+/// ```
+#[no_mangle]
 pub fn get_blank_tiles() -> HashSet<String> {
     let mut blank_tiles = HashSet::new();
     TL_RAW_TILES.with_borrow(|v| {
@@ -573,6 +953,7 @@ where
     }
 }
 
+#[no_mangle]
 fn r_format_using_processed_tiles_data(s: &str) -> Vec<String> {
     let lns: Vec<&str> = s.split('\n').collect();
     let mut res = vec![];
@@ -617,6 +998,7 @@ fn r_format_using_processed_tiles_data(s: &str) -> Vec<String> {
     res
 }
 
+#[no_mangle]
 fn r_format_using_raw_tiles_data(s: &str) -> Vec<String> {
     let lns: Vec<&str> = s.split('\n').collect();
     let mut res = vec![];
@@ -672,6 +1054,7 @@ fn r_format_using_raw_tiles_data(s: &str) -> Vec<String> {
     res
 }
 
+#[no_mangle]
 fn check_for_recursion_of_tiles(tile_name: &String, tile_value: &RTile) {
     let mut inner_tiles: Vec<String> = vec![];
     let mut processed_tiles: HashSet<String> = HashSet::new();
@@ -686,6 +1069,7 @@ fn check_for_recursion_of_tiles(tile_name: &String, tile_value: &RTile) {
     );
 }
 
+#[no_mangle]
 fn process_all_required_tiles_data(tile_name: &String, tile_value: &RTile) {
     let mut inner_tiles: Vec<String> = vec![tile_name.clone()];
     let mut processed_tiles: HashSet<String> = HashSet::new();
@@ -717,6 +1101,7 @@ fn process_all_required_tiles_data(tile_name: &String, tile_value: &RTile) {
     }
 }
 
+#[no_mangle]
 fn check_for_recursion_in_inner_tiles(
     tile_name: &String,
     tile_value: &RTile,
@@ -779,6 +1164,8 @@ fn check_for_recursion_in_inner_tiles(
         processed_tiles.insert(tile_name.to_string());
     }
 }
+
+#[no_mangle]
 fn find_inner_tiles(
     tile_name: &String,
     tile_value: &RTile,
@@ -834,6 +1221,7 @@ fn find_inner_tiles(
     }
 }
 
+#[no_mangle]
 fn identify_any_missing_inner_tiles(
     tile_name: Option<String>,
     tile_lns: &Vec<String>,
@@ -891,6 +1279,7 @@ fn identify_any_missing_inner_tiles(
     }
 }
 
+#[no_mangle]
 fn get_blank_inner_tiles_names(
     tile_name: Option<String>,
     tile_lns: &Vec<String>,
@@ -950,6 +1339,7 @@ fn get_blank_inner_tiles_names(
     }
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct RTile {
     pub name: Option<String>,
@@ -958,6 +1348,7 @@ pub struct RTile {
 }
 
 impl RTile {
+    #[no_mangle]
     pub fn new_str(lns: Vec<&str>) -> Self {
         let lns: Vec<String> = lns.iter().map(|&item| item.to_string()).collect();
         create_blank_tiles_of_any_missing_inner_tiles(None, &lns);
@@ -968,6 +1359,7 @@ impl RTile {
         }
     }
 
+    #[no_mangle]
     pub fn new(lns: Vec<String>) -> Self {
         create_blank_tiles_of_any_missing_inner_tiles(None, &lns);
         Self {
@@ -977,6 +1369,7 @@ impl RTile {
         }
     }
 
+    #[no_mangle]
     pub fn construct_from_str(val: &str) -> Self {
         let lns: Vec<&str> = val.split('\n').collect();
         let lns: Vec<String> = lns.iter().map(|&item| item.to_string()).collect();
@@ -988,6 +1381,7 @@ impl RTile {
         }
     }
 
+    #[no_mangle]
     pub fn new_without_trimming_str(lns: Vec<&str>) -> Self {
         let lns: Vec<String> = lns.iter().map(|&item| item.to_string()).collect();
         create_blank_tiles_of_any_missing_inner_tiles(None, &lns);
@@ -998,6 +1392,7 @@ impl RTile {
         }
     }
 
+    #[no_mangle]
     pub fn new_without_trimming(lns: Vec<String>) -> Self {
         create_blank_tiles_of_any_missing_inner_tiles(None, &lns);
         Self {
@@ -1007,6 +1402,7 @@ impl RTile {
         }
     }
 
+    #[no_mangle]
     pub fn from_str_without_trimming(val: &str) -> Self {
         let lns: Vec<&str> = val.split('\n').collect();
         let lns: Vec<String> = lns.iter().map(|&item| item.to_string()).collect();
@@ -1018,6 +1414,7 @@ impl RTile {
         }
     }
 
+    #[no_mangle]
     pub fn get_names_of_blank_inner_tiles(&self) -> Vec<String> {
         let mut processed_tiles: HashSet<String> = HashSet::new();
         let mut blank_inner_tiles = vec![];
@@ -1030,6 +1427,7 @@ impl RTile {
         blank_inner_tiles
     }
 
+    #[no_mangle]
     pub fn reevaluate(&self) -> String {
         // calling r_format_using_processed_tiles_data, as all the inner tiles are supposed to be reevaluated / processed by now
         trim(
@@ -1147,10 +1545,12 @@ impl RTile {
     /// let tile = t!("   @{another_tile_one}             @{another_tile_two}       ");
     /// calling tile.raw(); would return a trimmed, non-expanded raw data of the tile
     /// so tile.raw() == "@{another_tile_one}             @{another_tile_two}".to_string();
+    #[no_mangle]
     pub fn raw(&self) -> String {
         format!("{}", trim(self.lns.clone(), self.do_trimming).join("\n"))
     }
 
+    #[no_mangle]
     pub fn has_inner_tiles_in_raw_data(&self) -> bool {
         for ln in &self.lns {
             let start = ln[..].find("@{").unwrap_or(ln.len());
@@ -1167,6 +1567,7 @@ impl RTile {
         false
     }
 
+    #[no_mangle]
     pub fn inner_tiles_in_raw_data(&self) -> Vec<Vec<String>> {
         let mut result = vec![];
         for ln in &self.lns {
@@ -1202,6 +1603,7 @@ impl RTile {
         result
     }
 
+    #[no_mangle]
     pub fn inner_tiles(&self) -> HashSet<String> {
         let mut inner_tiles: Vec<String> = vec![];
         let mut processed_tiles: HashSet<String> = HashSet::new();
@@ -1231,6 +1633,7 @@ impl RTile {
     }
 }
 
+#[no_mangle]
 fn create_blank_tiles_of_any_missing_inner_tiles(name: Option<String>, lns: &Vec<String>) {
     let mut processed_tiles: HashSet<String> = HashSet::new();
     let mut missing_inner_tiles: HashSet<String> = HashSet::new();
@@ -1260,6 +1663,7 @@ fn create_blank_tiles_of_any_missing_inner_tiles(name: Option<String>, lns: &Vec
 impl Add for RTile {
     type Output = Self;
 
+    #[no_mangle]
     fn add(self, other: RTile) -> Self::Output {
         let mut lns = self.lns.clone();
         append(&mut lns, other.lns);
@@ -1275,6 +1679,7 @@ impl Add for RTile {
 }
 
 impl AddAssign for RTile {
+    #[no_mangle]
     fn add_assign(&mut self, other: Self) {
         append(&mut self.lns, other.lns);
     }
@@ -1283,6 +1688,7 @@ impl AddAssign for RTile {
 impl BitOr for RTile {
     type Output = Self;
 
+    #[no_mangle]
     fn bitor(self, other: RTile) -> Self::Output {
         //Self { lns: [&self.lns[..], &other.lns[..]].concat(), }
         //or
@@ -1300,6 +1706,7 @@ impl BitOr for RTile {
 }
 
 impl BitOrAssign for RTile {
+    #[no_mangle]
     fn bitor_assign(&mut self, other: Self) {
         //self.lns = [&self.lns[..], &other.lns[..]].concat();
         //or
@@ -1310,6 +1717,7 @@ impl BitOrAssign for RTile {
 }
 
 impl Display for RTile {
+    #[no_mangle]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         if self.do_trimming {
             // trim and format
