@@ -2125,6 +2125,13 @@ mod tests {
         assert_eq!("one, two, three".to_string(), result.to_string());
     }
 
+    #[test]
+    fn test_ref_tile(){
+        let tile = t!("some value");
+        let result = ts!(&tile);
+        assert_eq!(&result, "some value");
+    }
+
     fn number_to_words(num: usize) -> String {
         if num == 0 {
             return "zero".to_string();
