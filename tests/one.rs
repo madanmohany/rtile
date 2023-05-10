@@ -2126,9 +2126,16 @@ mod tests {
     }
 
     #[test]
-    fn test_ref_tile(){
+    fn test_ref_tile_for_t(){
         let tile = t!("some value");
         let result = ts!(&tile);
+        assert_eq!(&result, "some value");
+    }
+
+    #[test]
+    fn test_ref_tile_for_k(){
+        let tile = k!("some value");
+        let result = ks!(&tile);
         assert_eq!(&result, "some value");
     }
 
