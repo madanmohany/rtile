@@ -198,9 +198,7 @@ impl MacroAttributeForT for Vec<String> {
 /// 
 /// let v1 = vec!["  one  ", "  two  ", "  three  "];
 /// let v2 = vec!["  1  ", "  2  ", "  3  "];
-/// let k1 = k!(v1);
-/// let k2 = k!(v2);
-/// let val = k1 + k2;
+/// let val = k!(v1) + k!(v2);
 /// assert_eq!(tf!(val), "one      1two      2three    3");
 /// ```
 ///        
@@ -582,9 +580,7 @@ impl MacroAttributeForK for Vec<String> {
 /// 
 /// let v1 = vec!["  one  ", "  two  ", "  three  "];
 /// let v2 = vec!["  1  ", "  2  ", "  3  "];
-/// let k1 = k!(v1);
-/// let k2 = k!(v2);
-/// let val = k1 + k2;
+/// let val = k!(v1) + k!(v2);
 /// assert_eq!(kf!(val), "  one      1    two      2    three    3  ");
 /// ```
 ///        
