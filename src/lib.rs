@@ -169,16 +169,16 @@ impl MacroAttributeForT for Vec<String> {
 /// ```
 /// use rtile::*;
 /// tp!(
-///     tft_inner_tile_m2,
+///     tile_2,
 ///     "
 ///             seven,
 ///     "
 /// );
 /// tp!(
-///     tft_inner_tile_m1,
+///     tile_1,
 ///     "
 ///             six,
-///             @{tft_inner_tile_m2}
+///             @{tile_2}
 ///             eight,
 ///     "
 /// );
@@ -188,7 +188,7 @@ impl MacroAttributeForT for Vec<String> {
 ///             three,
 ///             four,
 ///             five,
-///             @{tft_inner_tile_m1}
+///             @{tile_1}
 ///             nine,
 ///             ten
 /// ");
@@ -220,16 +220,16 @@ macro_rules! tf {
 /// ```
 /// use rtile::*;
 /// tp!(
-///     tft_inner_tile_m2,
+///     tile_2,
 ///     "
 ///             seven,
 ///     "
 /// );
 /// tp!(
-///     tft_inner_tile_m1,
+///     tile_1,
 ///     "
 ///             six,
-///             @{tft_inner_tile_m2}
+///             @{tile_2}
 ///             eight,
 ///     "
 /// );
@@ -239,7 +239,7 @@ macro_rules! tf {
 ///             three,
 ///             four,
 ///             five,
-///             @{tft_inner_tile_m1}
+///             @{tile_1}
 ///             nine,
 ///             ten
 /// ");
