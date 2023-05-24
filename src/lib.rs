@@ -20,7 +20,7 @@
 
 //!
 //! rtile provides a way to work with rectangular areas of text as atomic units.
-//! 
+//!
 
 #![warn(missing_docs)]
 #![feature(local_key_cell_methods)]
@@ -165,7 +165,7 @@ impl MacroAttributeForT for Vec<String> {
 }
 
 /// tf! is used to flatten the multilines of the tile output into a single string
-/// 
+///
 /// ```
 /// use rtile::*;
 /// tp!(
@@ -195,7 +195,7 @@ impl MacroAttributeForT for Vec<String> {
 /// let output = tf!(input_tile);
 /// let expected_output = "one,two,three,four,five,six,seven,eight,nine,ten".to_string();
 /// assert_eq!(output, expected_output);
-/// 
+///
 /// let v1 = vec!["  one  ", "  two  ", "  three  "];
 /// let v2 = vec!["  1  ", "  2  ", "  3  "];
 /// let val = k!(v1) + k!(v2);
@@ -216,7 +216,7 @@ macro_rules! tf {
 }
 
 /// t! is to expand any inner tiles and to trim the white spaces around the block of text and return a tile
-/// 
+///
 /// ```
 /// use rtile::*;
 /// tp!(
@@ -270,14 +270,14 @@ macro_rules! t {
 }
 
 /// tp! is to used to persist the tile into the tls (thread local storage), with a given name (string literal) and return a tile
-/// 
+///
 /// ```
 /// use rtile::*;
 /// tp!(
 ///     inner_tile_one,
 ///     "
 ///             one
-/// 
+///
 ///             two
 ///     "
 /// );
@@ -328,7 +328,7 @@ macro_rules! tp {
 }
 
 /// tq! is to used to persist the tile into the tls (thread local storage), with a variable having a string value and return a tile
-/// 
+///
 /// ```
 ///         
 /// use rtile::*;
@@ -338,7 +338,7 @@ macro_rules! tp {
 ///     persisted_tile_one,
 ///     "
 ///             one
-/// 
+///
 ///             two
 ///     "
 /// );
@@ -392,10 +392,10 @@ macro_rules! tq {
 }
 
 /// tt! is to used to expand the inner tiles and return the expanded ouput as a trimmed tile
-/// 
+///
 /// ```
 /// use rtile::*;
-/// 
+///
 /// tp!(numbers, "1, 2, 3, 4, 5");
 /// let result = tt!("Numbers: @{numbers}");
 /// assert_eq!(result.to_string(), "Numbers: 1, 2, 3, 4, 5".to_string());
@@ -412,10 +412,10 @@ macro_rules! tt {
 }
 
 /// ttp! is to used to expand the inner tiles, persist the result to tls (thread local storage) using a string literal and return a trimmed tile
-/// 
+///
 /// ```
 /// use rtile::*;
-/// 
+///
 /// tp!(numbers, "1, 2, 3, 4, 5");
 /// ttp!(numbers, "Numbers: @{numbers}");
 /// assert_eq!(t!("@{numbers}").to_string(), "Numbers: 1, 2, 3, 4, 5".to_string());
@@ -440,10 +440,10 @@ macro_rules! ttp {
 }
 
 /// ttq! is to used to expand the inner tiles, persist the result to tls (thread local storage) using a variable name and return a trimmed tile
-/// 
+///
 /// ```
 /// use rtile::*;
-/// 
+///
 /// tp!(numbers, "1, 2, 3, 4, 5");
 /// let persisted_tile_name = "numbers";
 /// ttq!(persisted_tile_name, "Numbers: @{numbers}");
@@ -471,7 +471,7 @@ macro_rules! ttq {
 }
 
 /// sr! returns the trimmed raw data of a tile
-/// 
+///
 /// ```
 /// use rtile::*;
 /// let tile = t!("
@@ -571,13 +571,13 @@ impl MacroAttributeForK for Vec<String> {
 }
 
 /// kf! is used to flatten the multilines of the tile output into a single string, without trimming the white spaces. i.e. keep the white spaces
-/// 
+///
 /// ```
 /// use rtile::*;
 /// let v1 = vec!["  one  ", "  two  ", "  three  "];
 /// let val = k!(v1);
 /// assert_eq!(kf!(val), "  one    two    three  ");
-/// 
+///
 /// let v1 = vec!["  one  ", "  two  ", "  three  "];
 /// let v2 = vec!["  1  ", "  2  ", "  3  "];
 /// let val = k!(v1) + k!(v2);
@@ -592,10 +592,10 @@ macro_rules! kf {
 }
 
 /// k! is to expand any inner tiles, to keep the white spaces (i.e. do not trim any white spaces around the block) and return a tile
-/// 
+///
 /// ```
 /// use rtile::*;
-/// 
+///
 /// let v1 = vec!["  one  ", "  two  ", "  three  "];
 /// let val = k!(v1);
 /// assert_eq!(val.to_string(), "  one  \n  two  \n  three  ");
@@ -622,10 +622,10 @@ macro_rules! k {
 }
 
 /// kp! is to expand any inner tiles, to keep the white spaces (i.e. do not trim any white spaces around the block), with a given name (string literal) and return a tile
-/// 
+///
 /// ```
 /// use rtile::*;
-/// 
+///
 /// kp!(tile_1, " abc ");
 /// kp!(tile_2, "@{tile_1}");
 ///
@@ -659,12 +659,12 @@ macro_rules! kp {
 }
 
 /// kq! is to expand any inner tiles, to keep the white spaces (i.e. do not trim any white spaces around the block), with a variable having a string value and return a tile
-/// 
+///
 /// ```
 /// use rtile::*;
 /// let t1 = "tile_1";
 /// let t2 = "tile_2";
-/// 
+///
 /// kq!(t1, " abc ");
 /// kq!(t2, "@{tile_1}");
 ///
@@ -701,10 +701,10 @@ macro_rules! kq {
 }
 
 /// kk! is to used to expand the inner tiles, by keeping the white spaces (i.e. do not trim any white spaces around the block) and return a tile
-/// 
+///
 /// ```
 /// use rtile::*;
-/// 
+///
 /// kp!(numbers, "     1, 2, 3, 4, 5     ");
 /// let result = kk!("  Numbers: @{numbers}  ");
 /// assert_eq!(result.to_string(), "  Numbers:      1, 2, 3, 4, 5       ".to_string());
@@ -720,11 +720,11 @@ macro_rules! kk {
     }};
 }
 
-/// kkp! is to used to expand the inner tiles, by keeping the white spaces (i.e. do not trim any white spaces around the block), persist the result to tls (thread local storage) using a string literal and return a tile 
-/// 
+/// kkp! is to used to expand the inner tiles, by keeping the white spaces (i.e. do not trim any white spaces around the block), persist the result to tls (thread local storage) using a string literal and return a tile
+///
 /// ```
 /// use rtile::*;
-/// 
+///
 /// kp!(numbers, "     1, 2, 3, 4, 5     ");
 /// kkp!(numbers, "  Numbers: @{numbers}  ");
 /// assert_eq!(ks!("@{numbers}"), "  Numbers:      1, 2, 3, 4, 5       ".to_string());
@@ -748,8 +748,8 @@ macro_rules! kkp {
     }};
 }
 
-/// kkq! is to used to expand the inner tiles, by keeping the white spaces (i.e. do not trim any white spaces around the block), persist the result to tls (thread local storage) using a variable having a string value and return a tile 
-/// 
+/// kkq! is to used to expand the inner tiles, by keeping the white spaces (i.e. do not trim any white spaces around the block), persist the result to tls (thread local storage) using a variable having a string value and return a tile
+///
 /// ```
 /// use rtile::*;
 /// let tile_name = "numbers";
@@ -836,7 +836,7 @@ pub fn get_raw_tile(key: &str) -> Option<RTile> {
 /// remove_tile, used to remove a tile by name from the tls (thread local storage)
 /// ```
 /// use rtile::*;
-/// 
+///
 /// tp!(tile1, "one");
 /// tp!(tile2, "two");
 /// assert_eq!(ts!("@{tile1}-@{tile2}"), "one-two".to_string());
@@ -858,7 +858,7 @@ pub fn remove_tile(key: &str) {
 /// clear_tiles, used to remove all tiles from the tls (thread local storage)
 /// ```
 /// use rtile::*;
-/// 
+///
 /// tp!(tile1, "one");
 /// tp!(tile2, "two");
 /// assert_eq!(ts!("@{tile1}-@{tile2}"), "one-two".to_string());
@@ -876,9 +876,9 @@ pub fn clear_tiles() {
 /// get_blank_tiles, used to return blank tiles stored in the tls (thread local storage)
 /// ```
 /// use rtile::*;
-/// 
+///
 /// tt!("@{tile1}-@{tile2}");
-/// 
+///
 /// let result = get_blank_tiles();
 /// assert_eq!(result.contains(&"tile1".to_string()), true);
 /// assert_eq!(result.contains(&"tile2".to_string()), true);
