@@ -33,7 +33,7 @@ fn main() {
         main_tile_one,
         "Reusing the template with different values.     "
     );
-    tp!(main_tile_two, "{:?}", vec![1, 2, 3, 4, 5]);
+    tp!(main_tile_two, "{:?}", vec![1, 2, 3, 4]);
     tp!(f2, frame_tile(gtp!(main_result_tile).unwrap(), 1, 1));
 
     // set new values for main_tile_one and main_tile_two, to reuse the template with different values
@@ -53,17 +53,17 @@ fn main() {
         main_tile_one,
         k!(vec![23, 4, 5, 7, 10]
                 .iter()
-                .map(|x| if x % 2 == 0 { "Ok(true)" } else { "Err(false)" })
-                .collect::<Vec<&str>>()) 
+                .map(|x| if x % 2 == 0 { format!("Some({x})") } else { "None".to_string() })
+                .collect::<Vec<String>>()) 
         + k!(vec!["  ==>   "; dimensions.1])
     );
+    kp!(arrows,"\n{}\n",t!(vec!["------>"; dimensions.1]));
     tp!(f4, frame_tile(gtp!(main_result_tile).unwrap(), 5, 0));
 
     let result = t!(r#"
         @{f1}
         @{f2}
-        @{f3}
-        @{f4}
+        @{f3} @{arrows} @{f4}
     "#);
     println!("{}", result);
 }
@@ -118,23 +118,16 @@ fn frame_tile(input: RTile, width_spacing: usize, height_spacing: usize) -> RTil
 |                                                 |
 |                                                 |
 ===================================================
-===================================================================
-|                                                                 |
-| Reusing the template with different values.     [1, 2, 3, 4, 5] |
-|                                                                 |
-===================================================================
-==========
-|1, one  |
-|2, two  |
-|3, three|
-|4, four |
-|5, five |
-==========
-======================================
-|     Err(false)  ==>   1, one       |
-|     Ok(true)    ==>   2, two       |
-|     Err(false)  ==>   3, three     |
-|     Err(false)  ==>   4, four      |
-|     Ok(true)    ==>   5, five      |
-======================================
+================================================================
+|                                                              |
+| Reusing the template with different values.     [1, 2, 3, 4] |
+|                                                              |
+================================================================
+==========         ====================================
+|1, one  | ------> |     None      ==>   1, one       |
+|2, two  | ------> |     Some(4)   ==>   2, two       |
+|3, three| ------> |     None      ==>   3, three     |
+|4, four | ------> |     None      ==>   4, four      |
+|5, five | ------> |     Some(10)  ==>   5, five      |
+==========         ====================================
 ```
