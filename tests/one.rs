@@ -3,28 +3,7 @@ mod tests {
     use std::any::type_name;
     use std::collections::HashSet;
 
-    // use rtile::gtp;
-    // use rtile::gtq;
-    // use rtile::k;
-    // use rtile::kf;
-    // use rtile::kk;
-    // use rtile::kkp;
-    // use rtile::kkq;
-    // use rtile::kp;
-    // use rtile::kq;
-    // use rtile::ks;
     use rtile::*;
-    // use rtile::sr;
-    // use rtile::stp;
-    // use rtile::stq;
-    // use rtile::t;
-    // use rtile::tf;
-    // use rtile::tp;
-    // use rtile::tq;
-    // use rtile::ts;
-    // use rtile::tt;
-    // use rtile::ttp;
-    // use rtile::ttq;
 
     fn type_of<T>(_: T) -> &'static str {
         type_name::<T>()
@@ -832,16 +811,20 @@ mod tests {
 
     #[test]
     fn test_macros_tt() {
-        let numbers_as_strings = "one, two, three, four, five, six, seven, eight, nine, ten";
-        tp!(tmt1_numbers, numbers_as_strings);
-        let t1 = tt!("introducing @{tmt1_numbers}");
+        let mut input_tile = t!();
+        for i in 1..5 {
+            tp!(tile, "input_data_{},", i);
+            input_tile |= tt!("@{tile}");
+        }
         assert_eq!(
-            t1.to_string(),
-            "introducing one, two, three, four, five, six, seven, eight, nine, ten"
+            ts!(input_tile),
+            ts!("
+                                     input_data_1,
+                                     input_data_2,
+                                     input_data_3,
+                                     input_data_4,
+                                     ")
         );
-        tp!(tmt1_numbers, "1, 2, 3, 4, 5, 6, 7, 8, 9, 10");
-        let t2 = tt!("introducing @{tmt1_numbers}");
-        assert_eq!(t2.to_string(), "introducing 1, 2, 3, 4, 5, 6, 7, 8, 9, 10");
     }
 
     #[test]
@@ -1730,14 +1713,17 @@ mod tests {
         let val = k!("   one   ");
         assert_eq!(ks!(val), "   one   ");
     }
-    
+
     #[test]
-    fn test_ks_macro_two(){
+    fn test_ks_macro_two() {
         kp!(numbers, "   1, 2, 3   ");
         kp!(alphabets, "   a, b, c, d   ");
         let result = ks!("Numbers: [@{numbers}]
                           Alphabets: [@{alphabets}]");
-        assert_eq!(result, "Numbers: [   1, 2, 3   ]\n                          Alphabets: [   a, b, c, d   ]");
+        assert_eq!(
+            result,
+            "Numbers: [   1, 2, 3   ]\n                          Alphabets: [   a, b, c, d   ]"
+        );
     }
 
     #[test]
@@ -1764,13 +1750,15 @@ mod tests {
 
     #[test]
     fn test_kk_macro() {
-        let k1 = kp!(t_kk_one, " one     ");
-        let k2 = kp!(t_kk_two, "     two ");
-        let result = kk!("@{t_kk_one}\n@{t_kk_two}");
-        assert_eq!(ks!(k1), " one     ");
-        assert_eq!(ks!(k2), "     two ");
-        assert_eq!(ks!(result), " one     \n     two ");
-        //println!("{}", result);
+        let mut input_tile = k!();
+        for i in 1..5 {
+            kp!(tile, "input_data_{}, ", i);
+            input_tile += kk!("@{tile}");
+        }
+        assert_eq!(
+            ks!(input_tile),
+            ks!("input_data_1, input_data_2, input_data_3, input_data_4, ")
+        );
     }
 
     #[test]
@@ -1852,9 +1840,9 @@ mod tests {
         let tile_name_two = "t_mkk_2_2";
         kq!(tile_name_one, " abc ");
         kq!(tile_name_two, format!("@{{{}}}", tile_name_one));
-        //println!("{:#?}", tile_name_two);
+        println!("{:#?}", gtq!(tile_name_two).unwrap());
         let result_tile = k!(format!("@{{{}}}", tile_name_two));
-        //println!("{:#?}", result_tile);
+        println!("{:#?}", result_tile);
         let result_1 = kk!(result_tile);
         kq!(tile_name_one, "  def  ");
         let result_2 = k!(result_tile);
@@ -2126,14 +2114,14 @@ mod tests {
     }
 
     #[test]
-    fn test_ref_tile_for_t(){
+    fn test_ref_tile_for_t() {
         let tile = t!("some value");
         let result = ts!(&tile);
         assert_eq!(&result, "some value");
     }
 
     #[test]
-    fn test_ref_tile_for_k(){
+    fn test_ref_tile_for_k() {
         let tile = k!("some value");
         let result = ks!(&tile);
         assert_eq!(&result, "some value");

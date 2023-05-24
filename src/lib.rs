@@ -19,7 +19,14 @@
 // IN THE SOFTWARE.
 
 //!
-//! rtile provides a way to work with rectangular areas of text as atomic units.
+//! rtile provides a way to work with rectangular areas of text as atomic units which can be used for code generation.
+//!
+//! ```
+//! use rtile::*;
+//! kp!(greet_one, "Welcome to rtile!     ");
+//! tp!(greet_two, "Have a great day!");
+//! assert_eq!(ts!("@{greet_one}@{greet_two}"), "Welcome to rtile!     Have a great day!");
+//! ```
 //!
 
 #![warn(missing_docs)]
@@ -243,7 +250,7 @@ macro_rules! tf {
 ///             nine,
 ///             ten
 /// ");
-/// let output = t!(input_tile).to_string();
+/// let output = input_tile.to_string();
 /// let expected_output = "one,\ntwo,\nthree,\nfour,\nfive,\nsix,\nseven,\neight,\nnine,\nten".to_string();
 /// assert_eq!(output, expected_output);
 /// ```
@@ -274,7 +281,7 @@ macro_rules! t {
 /// ```
 /// use rtile::*;
 /// tp!(
-///     inner_tile_one,
+///     tile_one,
 ///     "
 ///             one
 ///
@@ -282,7 +289,7 @@ macro_rules! t {
 ///     "
 /// );
 /// tp!(
-///     inner_tile_two,
+///     tile_two,
 ///     "
 ///             three
 ///             four
@@ -290,9 +297,9 @@ macro_rules! t {
 ///     "
 /// );
 /// let input_tile = t!("
-///             @{inner_tile_one} @{inner_tile_two}
+///             @{tile_one} @{tile_two}
 /// ");
-/// let output = t!(input_tile).to_string();
+/// let output = input_tile.to_string();
 /// let expected_output = ts!("
 ///                          one three
 ///                              four
@@ -332,8 +339,8 @@ macro_rules! tp {
 /// ```
 ///         
 /// use rtile::*;
-/// let persisted_tile_one = "inner_tile_one";
-/// let persisted_tile_two = "inner_tile_two";
+/// let persisted_tile_one = "tile_one";
+/// let persisted_tile_two = "tile_two";
 /// tq!(
 ///     persisted_tile_one,
 ///     "
@@ -351,9 +358,9 @@ macro_rules! tp {
 ///     "
 /// );
 /// let input_tile = t!("
-///             @{inner_tile_one} @{inner_tile_two}
+///             @{tile_one} @{tile_two}
 /// ");
-/// let output = t!(input_tile).to_string();
+/// let output = input_tile.to_string();
 /// let expected_output = ts!("
 ///                          one three
 ///                              four
@@ -397,8 +404,13 @@ macro_rules! tq {
 /// use rtile::*;
 ///
 /// tp!(numbers, "1, 2, 3, 4, 5");
-/// let result = tt!("Numbers: @{numbers}");
-/// assert_eq!(result.to_string(), "Numbers: 1, 2, 3, 4, 5".to_string());
+/// let mut result = tt!("Numbers: @{numbers}");
+/// tp!(numbers, "one, two, three, four, five");
+/// result |= t!("In words: @{numbers}");
+/// assert_eq!(result.to_string(), ts!("
+///                                     Numbers: 1, 2, 3, 4, 5
+///                                     In words: one, two, three, four, five
+///                                     "));
 /// ```
 #[macro_export]
 macro_rules! tt {
@@ -495,13 +507,13 @@ macro_rules! sr {
 /// ts! is to expand any inner tiles and to trim the white spaces around the block of text and return a String
 /// ```
 /// use rtile::*;
-/// tp!(numbers, "1, 2, 3");
-/// tp!(alphabets, "a, b, c, d");
+/// tp!(tile_one, "   one   ");
+/// tp!(tile_two, "   two   ");
 /// let result = ts!("
-///                 @{numbers}
-///                 @{alphabets}
+///                 @{tile_one}
+///                 @{tile_two}
 ///                 ");
-/// assert_eq!(result, "1, 2, 3\na, b, c, d");
+/// assert_eq!(result, "one\ntwo");
 /// ```
 #[macro_export]
 macro_rules! ts {
@@ -706,8 +718,10 @@ macro_rules! kq {
 /// use rtile::*;
 ///
 /// kp!(numbers, "     1, 2, 3, 4, 5     ");
-/// let result = kk!("  Numbers: @{numbers}  ");
-/// assert_eq!(result.to_string(), "  Numbers:      1, 2, 3, 4, 5       ".to_string());
+/// let mut result = kk!("  Numbers: @{numbers}  ");
+/// kp!(numbers, "   one, two, three, four, five   ");
+/// result |= k!("  In words: @{numbers}  ");
+/// assert_eq!(result.to_string(), ks!("  Numbers:      1, 2, 3, 4, 5       \n  In words:    one, two, three, four, five     "));
 /// ```
 #[macro_export]
 macro_rules! kk {
@@ -781,11 +795,10 @@ macro_rules! kkq {
 /// ks! is to expand any inner tiles by keeping the white spaces (i.e. do not trim any white spaces around the block) and return a String
 /// ```
 /// use rtile::*;
-/// kp!(numbers, "   1, 2, 3   ");
-/// kp!(alphabets, "   a, b, c, d   ");
-/// let result = ks!("Numbers: [@{numbers}]
-///                   Alphabets: [@{alphabets}]");
-/// assert_eq!(result, "Numbers: [   1, 2, 3   ]\n                  Alphabets: [   a, b, c, d   ]");
+/// kp!(tile_one, "   one   ");
+/// kp!(tile_two, "   two   ");
+/// let result = ks!("@{tile_one}, @{tile_two}");
+/// assert_eq!(result, "   one   ,    two   ");
 /// ```
 #[macro_export]
 macro_rules! ks {
@@ -877,7 +890,7 @@ pub fn clear_tiles() {
 /// ```
 /// use rtile::*;
 ///
-/// tt!("@{tile1}-@{tile2}");
+/// t!("@{tile1}-@{tile2}");
 ///
 /// let result = get_blank_tiles();
 /// assert_eq!(result.contains(&"tile1".to_string()), true);

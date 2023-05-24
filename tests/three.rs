@@ -1,11 +1,6 @@
 #[cfg(test)]
 mod tests {
-    // use rtile::k;
-    // use rtile::kp;
     use rtile::*;
-    // use rtile::t;
-    // use rtile::tp;
-    // use rtile::gtp;
 
     fn set_spacing(width_spacing: usize, height_spacing: usize) {
         //set the spacing if required - maintain unit spacing, that is sufficient to create the frame

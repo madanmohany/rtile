@@ -1,11 +1,6 @@
 #[cfg(test)]
 mod tests {
-    // use rtile::gtq;
-    // use rtile::k;
     use rtile::*;
-    // use rtile::t;
-    // use rtile::tp;
-    // use rtile::ts;
 
     fn c_1(tile: &RTile) -> Vec<&str> {
         match tile.lns.len() {
