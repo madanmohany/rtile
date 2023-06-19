@@ -29,6 +29,7 @@
 //! ```
 //!
 
+#![warn(missing_docs)]
 #![feature(local_key_cell_methods)]
 
 use std::any::type_name;
