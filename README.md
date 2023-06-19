@@ -196,7 +196,7 @@ fn frame_tile(input: &RTile, width_spacing: usize, height_spacing: usize) -> RTi
 
 ## Output
 
-```txt
+```html
 ===================================================
 |                                                 |
 |                                                 |
