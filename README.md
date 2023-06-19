@@ -136,7 +136,7 @@ fn main() {
     tp!(a, struct_codes[2]);
     tp!(b, struct_codes[3]);
     let two = t!(frame_tile(&gtp!(main_result_tile).unwrap(), 1, 1));
-    println!("{}", one + k!(" ") + two);
+    println!("{}", one + k!("   ") + two);
 }
 
 fn initialize_frame() {
@@ -216,19 +216,19 @@ fn frame_tile(input: &RTile, width_spacing: usize, height_spacing: usize) -> RTi
 |4, four | ------> |     None      ==>   4, four      |
 |5, five | ------> |     Some(10)  ==>   5, five      |
 ==========         ====================================
-================================== ============================
-|                                | |                          |
-| pub struct Address{            | | struct Point{            |
-|     pub street: String,        | |     x: f32,              |
-|     pub city: String,          | |     y: f32,              |
-|     pub state: String,         | | }                        |
-|     pub zip: String,           | |                          |
-| }                              | | struct Rectangle{        |
-|                                | |     top_left: Point,     |
-| pub struct Person{             | |     bottom_right: Point, |
-|     pub name: String,          | | }                        |
-|     pub age: u32,              | |                          |
-|     pub address: Vec<Address>, | ============================
+==================================   ============================
+|                                |   |                          |
+| pub struct Address{            |   | struct Point{            |
+|     pub street: String,        |   |     x: f32,              |
+|     pub city: String,          |   |     y: f32,              |
+|     pub state: String,         |   | }                        |
+|     pub zip: String,           |   |                          |
+| }                              |   | struct Rectangle{        |
+|                                |   |     top_left: Point,     |
+| pub struct Person{             |   |     bottom_right: Point, |
+|     pub name: String,          |   | }                        |
+|     pub age: u32,              |   |                          |
+|     pub address: Vec<Address>, |   ============================
 | }                              |
 |                                |
 ==================================
