@@ -13,7 +13,7 @@ mod tests {
         );
     }
 
-    fn frame_tile(input: RTile, width_spacing: usize, height_spacing: usize) -> RTile {
+    fn frame_tile(input: &RTile, width_spacing: usize, height_spacing: usize) -> RTile {
         set_spacing(width_spacing, height_spacing);
         if height_spacing > 0 {
             // apply top bottom spacing,
@@ -41,11 +41,7 @@ mod tests {
         "#)
     }
 
-    #[test]
-    fn test_frames() {
-        kp!(main_tile_one, "Welcome to RTile!     ");
-        tp!(main_tile_two, "     Have a great day!     ");
-
+    fn initialize_frame() {
         kp!(main_combined_tiles, "@{main_tile_one}@{main_tile_two}");
 
         // apply top bottom spacing,
@@ -58,8 +54,15 @@ mod tests {
             main_result_tile,
             "@{main_left_right_spaces}@{combined_tiles_with_top_bottom_spacing}@{main_left_right_spaces}"
         );
+    }
 
-        tp!(f1, frame_tile(gtp!(main_result_tile).unwrap(), 5, 2));
+    #[test]
+    fn test_frames() {
+        initialize_frame();
+        kp!(main_tile_one, "Welcome to RTile!     ");
+        tp!(main_tile_two, "     Have a great day!     ");
+
+        tp!(f1, frame_tile(&gtp!(main_result_tile).unwrap(), 5, 2));
 
         // set new values for main_tile_one and main_tile_two, to reuse the template with different values
         kp!(
@@ -67,7 +70,7 @@ mod tests {
             "Reusing the template with different values.     "
         );
         tp!(main_tile_two, "{:?}", vec![1, 2, 3, 4, 5]);
-        tp!(f2, frame_tile(gtp!(main_result_tile).unwrap(), 1, 1));
+        tp!(f2, frame_tile(&gtp!(main_result_tile).unwrap(), 1, 1));
 
         // set new values for main_tile_one and main_tile_two, to reuse the template with different values
         kp!(
@@ -77,7 +80,7 @@ mod tests {
         );
         tp!(main_tile_two, vec!["one", "two", "three", "four", "five"]);
         let result = t!(gtp!(main_result_tile).unwrap());
-        tp!(f3, frame_tile(result.clone(), 0, 0));
+        tp!(f3, frame_tile(&result, 0, 0));
 
         // set new values for main_tile_one and main_tile_two, to reuse the template with different values
         let dimensions = result.dimensions();
@@ -90,15 +93,15 @@ mod tests {
                     .map(|x| if x % 2 == 0 { "true" } else { "false" })
                     .collect::<Vec<&str>>())
         );
-        tp!(f4, frame_tile(gtp!(main_result_tile).unwrap(), 5, 0));
+        tp!(f4, frame_tile(&gtp!(main_result_tile).unwrap(), 5, 0));
 
         // set new values for main_tile_one and main_tile_two, to reuse the template with different values
         kp!(main_tile_one, "1 ");
         kp!(main_tile_two, "   One");
-        tp!(f5, frame_tile(gtp!(main_result_tile).unwrap(), 0, 0));
-        tp!(f6, frame_tile(gtp!(main_result_tile).unwrap(), 5, 0));
-        tp!(f7, frame_tile(gtp!(main_result_tile).unwrap(), 0, 2));
-        tp!(f8, frame_tile(gtp!(main_result_tile).unwrap(), 2, 2));
+        tp!(f5, frame_tile(&gtp!(main_result_tile).unwrap(), 0, 0));
+        tp!(f6, frame_tile(&gtp!(main_result_tile).unwrap(), 5, 0));
+        tp!(f7, frame_tile(&gtp!(main_result_tile).unwrap(), 0, 2));
+        tp!(f8, frame_tile(&gtp!(main_result_tile).unwrap(), 2, 2));
 
         let result = t!(r#"
             @{f1}

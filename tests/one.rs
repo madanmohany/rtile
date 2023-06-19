@@ -14,19 +14,6 @@ mod tests {
         assert_eq!(type_of(t), "rtile::RTile");
     }
 
-    macro_rules! using_a {
-        ($a:ident, $e:expr) => {{
-            let $a = 42;
-            $e
-        }};
-    }
-
-    #[test]
-    fn test_macro_example() {
-        let four = using_a!(b, b / 10);
-        assert_eq!(four, 4);
-    }
-
     #[test]
     fn test_tile_literals() {
         let tile = t!("hello");

@@ -29,7 +29,6 @@
 //! ```
 //!
 
-#![warn(missing_docs)]
 #![feature(local_key_cell_methods)]
 
 use std::any::type_name;
@@ -1648,10 +1647,6 @@ fn create_blank_tiles_of_any_missing_inner_tiles(name: Option<String>, lns: &Vec
     let mut missing_inner_tiles: HashSet<String> = HashSet::new();
     identify_any_missing_inner_tiles(name, lns, &mut processed_tiles, &mut missing_inner_tiles);
     if !missing_inner_tiles.is_empty() {
-        //the order of write_guards should be RAW_TILES first and then PROCESSED_TILES,
-        //if it is the other way around, then all unit tests cannot be run at a time.
-        //The reason for this is because identify_any_missing_inner_tiles or similar functions which are
-        //processing/scanning inner tiles uses the read_guard of RAW_TILES.
         for missing_inner_tile_name in missing_inner_tiles {
             TL_RAW_TILES.with_borrow_mut(|v| {
                 v.insert(
@@ -1699,9 +1694,6 @@ impl BitOr for RTile {
 
     #[no_mangle]
     fn bitor(self, other: RTile) -> Self::Output {
-        //Self { lns: [&self.lns[..], &other.lns[..]].concat(), }
-        //or
-        //Self { lns: [self.lns.borrow(), other.lns.borrow()].concat::<String>(), }
         let lns = [&self.lns[..], &other.lns[..]].concat();
 
         create_blank_tiles_of_any_missing_inner_tiles(None, &lns);
@@ -1717,10 +1709,6 @@ impl BitOr for RTile {
 impl BitOrAssign for RTile {
     #[no_mangle]
     fn bitor_assign(&mut self, other: Self) {
-        //self.lns = [&self.lns[..], &other.lns[..]].concat();
-        //or
-        //self.lns = [self.lns.borrow(), other.lns.borrow()].concat::<String>();
-
         self.lns = [&self.lns[..], &other.lns[..]].concat();
     }
 }
@@ -1729,8 +1717,6 @@ impl Display for RTile {
     #[no_mangle]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         if self.do_trimming {
-            // trim and format
-            //
             write!(
                 f,
                 "{}",
@@ -1741,22 +1727,11 @@ impl Display for RTile {
                 .join("\n")
             )
         } else {
-            // just format - using only format causes problem with some unit tests.
-            // ex., using just format causes failure in unit test 'test_example_3' as it does not trim the white spaces
-            //
             write!(
                 f,
                 "{}",
                 r_format_using_raw_tiles_data(self.lns.join("\n").as_str()).join("\n")
             )
         }
-
-        // actual tile without expansion of inner tiles ( raw() function exists for this case )
-        //
-        // write!(
-        //     f,
-        //     "{}",
-        //     self.lns.join("\n")
-        // )
     }
 }
