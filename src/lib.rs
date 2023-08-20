@@ -30,7 +30,6 @@
 //!
 
 #![warn(missing_docs)]
-#![feature(local_key_cell_methods)]
 
 use std::any::type_name;
 use std::cell::RefCell;
@@ -1556,7 +1555,7 @@ impl RTile {
     /// so tile.raw() == "@{another_tile_one}             @{another_tile_two}".to_string();
     #[no_mangle]
     pub fn raw(&self) -> String {
-        format!("{}", trim(self.lns.clone(), self.do_trimming).join("\n"))
+        trim(self.lns.clone(), self.do_trimming).join("\n").to_string()
     }
 
     #[no_mangle]

@@ -758,7 +758,7 @@ mod tests {
         let mut names = vec![];
         let mut salaries = vec![];
         for employee in employees {
-            names.push(employee.0.clone());
+            names.push(employee.0);
             salaries.push(format!("{}", employee.1));
         }
         tp!(tpe2_emp_names, names.join("\n").as_str());
