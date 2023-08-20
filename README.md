@@ -35,15 +35,6 @@ fn codegen() {
             vec!["String", "String", "String", "String"],
         ),
     );
-    input.insert("Point", (false, vec!["x", "y"], vec!["f32", "f32"]));
-    input.insert(
-        "Rectangle",
-        (
-            false,
-            vec!["top_left", "bottom_right"],
-            vec!["Point", "Point"],
-        ),
-    );
     input.insert(
         "Properties",
         (
@@ -226,22 +217,10 @@ pub struct Person{
 }
 
 #[derive(Default, Debug)]
-struct Point{
-    x: f32,
-    y: f32,
-}
-
-#[derive(Default, Debug)]
 pub struct Properties{
     pub gender: Gender,
     pub kids: Option<u8>,
     pub other_details: OtherDetails,
-}
-
-#[derive(Default, Debug)]
-struct Rectangle{
-    top_left: Point,
-    bottom_right: Point,
 }
 
 #[derive(Debug)]
