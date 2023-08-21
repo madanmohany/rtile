@@ -44,7 +44,6 @@ use std::ops::Add;
 use std::ops::AddAssign;
 use std::ops::BitOr;
 use std::ops::BitOrAssign;
-use std::panic::RefUnwindSafe;
 
 ///
 /// give a name to a tile using any string literal and persist it in tls (thread local storage)
@@ -978,7 +977,7 @@ fn r_format_using_processed_tiles_data(s: &str) -> Vec<String> {
             if start < ln.len() {
                 start += current_cursor;
             }
-            append(&mut curr, vec![ln[end..start].to_string()]);
+            append(&mut curr, vec![&ln[end..start]]);
             if start == ln.len() {
                 break;
             }
@@ -994,7 +993,6 @@ fn r_format_using_processed_tiles_data(s: &str) -> Vec<String> {
                 if v.contains_key(tile_name) {
                     let tile_value = v.get(tile_name).unwrap().clone();
                     let lns: Vec<&str> = tile_value.split('\n').collect();
-                    let lns: Vec<String> = lns.iter().map(|&item| item.to_string()).collect();
                     append(&mut curr, lns);
                 } else {
                     println!("{} tile is not found", tile_name);
@@ -1023,7 +1021,7 @@ fn r_format_using_raw_tiles_data(s: &str) -> Vec<String> {
             if start < ln.len() {
                 start += current_cursor;
             }
-            append(&mut curr, vec![ln[end..start].to_string()]);
+            append(&mut curr, vec![&ln[end..start]]);
             if start == ln.len() {
                 break;
             }
@@ -1045,8 +1043,6 @@ fn r_format_using_raw_tiles_data(s: &str) -> Vec<String> {
                         if v.contains_key(tile_name) {
                             let tile_value = v.get(tile_name).unwrap().clone();
                             let lns: Vec<&str> = tile_value.split('\n').collect();
-                            let lns: Vec<String> =
-                                lns.iter().map(|&item| item.to_string()).collect();
                             append(&mut curr, lns);
                         } else {
                             println!("{} tile is not found", tile_name);
@@ -1130,7 +1126,7 @@ fn check_for_recursion_in_inner_tiles(
             if start < ln.len() {
                 start += current_cursor;
             }
-            append(&mut curr, vec![ln[end..start].to_string()]);
+            append(&mut curr, vec![&ln[end..start]]);
             if start == ln.len() {
                 break;
             }
@@ -1193,7 +1189,7 @@ fn find_inner_tiles(
             if start < ln.len() {
                 start += current_cursor;
             }
-            append(&mut curr, vec![ln[end..start].to_string()]);
+            append(&mut curr, vec![&ln[end..start]]);
             if start == ln.len() {
                 break;
             }
@@ -1249,7 +1245,7 @@ fn identify_any_missing_inner_tiles(
             if start < ln.len() {
                 start += current_cursor;
             }
-            append(&mut curr, vec![ln[end..start].to_string()]);
+            append(&mut curr, vec![&ln[end..start]]);
             if start == ln.len() {
                 break;
             }
@@ -1307,7 +1303,7 @@ fn get_blank_inner_tiles_names(
             if start < ln.len() {
                 start += current_cursor;
             }
-            append(&mut curr, vec![ln[end..start].to_string()]);
+            append(&mut curr, vec![&ln[end..start]]);
             if start == ln.len() {
                 break;
             }
@@ -1445,11 +1441,7 @@ impl RTile {
         .join("\n")
     }
 
-    pub fn join<T: Display + RefUnwindSafe + Debug>(
-        &self,
-        x: &Vec<T>,
-        last: Option<RTile>,
-    ) -> Self {
+    pub fn join<T: Display + Debug>(&self, x: &Vec<T>, last: Option<RTile>) -> Self {
         let mut res = RTile::new(vec![]);
         for (idx, item) in x.iter().enumerate() {
             match item {
@@ -1480,12 +1472,7 @@ impl RTile {
         }
     }
 
-    pub fn vjoin<T: Display + RefUnwindSafe + Debug>(
-        &self,
-        x: &Vec<T>,
-        inline: bool,
-        last: Option<RTile>,
-    ) -> Self {
+    pub fn vjoin<T: Display + Debug>(&self, x: &Vec<T>, inline: bool, last: Option<RTile>) -> Self {
         let last = last.unwrap_or_else(|| RTile::new(vec![]));
         let mut res = RTile::new(vec![]);
         for (idx, item) in x.iter().enumerate() {
@@ -1555,7 +1542,9 @@ impl RTile {
     /// so tile.raw() == "@{another_tile_one}             @{another_tile_two}".to_string();
     #[no_mangle]
     pub fn raw(&self) -> String {
-        trim(self.lns.clone(), self.do_trimming).join("\n").to_string()
+        trim(self.lns.clone(), self.do_trimming)
+            .join("\n")
+            .to_string()
     }
 
     #[no_mangle]
@@ -1670,7 +1659,7 @@ impl Add for RTile {
     #[no_mangle]
     fn add(self, other: RTile) -> Self::Output {
         let mut lns = self.lns.clone();
-        append(&mut lns, other.lns);
+        append(&mut lns, other.lns.as_slice());
 
         create_blank_tiles_of_any_missing_inner_tiles(None, &lns);
 
@@ -1685,7 +1674,7 @@ impl Add for RTile {
 impl AddAssign for RTile {
     #[no_mangle]
     fn add_assign(&mut self, other: Self) {
-        append(&mut self.lns, other.lns);
+        append(&mut self.lns, other.lns.as_slice());
     }
 }
 
