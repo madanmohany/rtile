@@ -955,7 +955,7 @@ where
         t1.extend(vec!["".to_owned(); diff as usize]);
     }
     let w = t1.iter().map(|s| s.chars().count()).max().unwrap_or(0);
-    for (i, s) in t2.iter().enumerate() {
+    for (i, s) in t2.into_iter().enumerate() {
         t1[i] = format!("{:<w$}{}", t1[i], s, w = w);
     }
 }
@@ -1659,7 +1659,7 @@ impl Add for RTile {
     #[no_mangle]
     fn add(self, other: RTile) -> Self::Output {
         let mut lns = self.lns.clone();
-        append(&mut lns, other.lns.as_slice());
+        append(&mut lns, other.lns);
 
         create_blank_tiles_of_any_missing_inner_tiles(None, &lns);
 
@@ -1674,7 +1674,7 @@ impl Add for RTile {
 impl AddAssign for RTile {
     #[no_mangle]
     fn add_assign(&mut self, other: Self) {
-        append(&mut self.lns, other.lns.as_slice());
+        append(&mut self.lns, other.lns);
     }
 }
 
