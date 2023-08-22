@@ -818,7 +818,6 @@ pub fn get_raw_tile(key: &str) -> Option<RTile> {
         if v.contains_key(key) {
             Some(v.get(key).unwrap().clone())
         } else {
-            //panic!("no tile exists with name {}", key);
             None
         }
     })
@@ -917,7 +916,7 @@ where
             .unwrap_or(0_usize)
     };
     let result = lns
-        .iter()
+        .into_iter()
         .map(|ln| ln.chars().skip(left).collect())
         .collect();
     result
@@ -1074,8 +1073,7 @@ fn process_all_required_tiles_data(tile_name: &String, tile_value: &RTile) {
                     let inner_tile_value = v.get(inner_tile_name).unwrap();
                     inner_tile_value.reevaluate()
                 } else {
-                    // panic!("{} tile is not found", inner_tile_name);
-                    println!("{} tile is not found", inner_tile_name);
+                    //tile not found, so return emtpy string
                     String::new()
                 }
             });
