@@ -1,23 +1,3 @@
-// Copyright (c) 2023 Madan Mohan Yenuganti  All rights reserved.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom
-// the Software is furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-// IN THE SOFTWARE.
-
 //!
 //! rtile provides a way to work with rectangular areas of text as atomic units which can be used for code generation.
 //!
@@ -918,7 +898,7 @@ where
         return t1;
     }
 
-    let mut lns: Vec<String> = t1.iter().map(|ln| ln.trim_end().to_string()).collect();
+    let mut lns: Vec<String> = t1.into_iter().map(|ln| ln.trim_end().to_string()).collect();
     lns = lns.into_iter().skip_while(|ln| ln.is_empty()).collect();
     lns.reverse();
     lns = lns.into_iter().skip_while(|ln| ln.is_empty()).collect();
@@ -991,7 +971,7 @@ fn r_format_using_processed_tiles_data(s: &str) -> Vec<String> {
 
             TL_PROCESSED_TILES.with_borrow(|v| {
                 if v.contains_key(tile_name) {
-                    let tile_value = v.get(tile_name).unwrap().clone();
+                    let tile_value = v.get(tile_name).unwrap();
                     let lns: Vec<&str> = tile_value.split('\n').collect();
                     append(&mut curr, lns);
                 } else {
@@ -1035,13 +1015,13 @@ fn r_format_using_raw_tiles_data(s: &str) -> Vec<String> {
 
             TL_RAW_TILES.with_borrow(|v_raw| {
                 if v_raw.contains_key(tile_name) {
-                    let tile_value = v_raw.get(tile_name).unwrap().clone();
-                    check_for_recursion_of_tiles(tile_name, &tile_value);
-                    process_all_required_tiles_data(tile_name, &tile_value);
+                    let tile_value = v_raw.get(tile_name).unwrap();
+                    check_for_recursion_of_tiles(tile_name, tile_value);
+                    process_all_required_tiles_data(tile_name, tile_value);
 
                     TL_PROCESSED_TILES.with_borrow(|v| {
                         if v.contains_key(tile_name) {
-                            let tile_value = v.get(tile_name).unwrap().clone();
+                            let tile_value = v.get(tile_name).unwrap();
                             let lns: Vec<&str> = tile_value.split('\n').collect();
                             append(&mut curr, lns);
                         } else {
@@ -1089,18 +1069,19 @@ fn process_all_required_tiles_data(tile_name: &String, tile_value: &RTile) {
         for inner_tile_index in (0..inner_tiles.len()).rev() {
             let inner_tile_name = inner_tiles.get(inner_tile_index).unwrap();
 
-            let inner_tile_value = TL_RAW_TILES.with_borrow(|v| {
+            let result = TL_RAW_TILES.with_borrow(|v| {
                 if v.contains_key(inner_tile_name) {
-                    v.get(inner_tile_name).unwrap().clone()
+                    let inner_tile_value = v.get(inner_tile_name).unwrap();
+                    inner_tile_value.reevaluate()
                 } else {
                     // panic!("{} tile is not found", inner_tile_name);
                     println!("{} tile is not found", inner_tile_name);
-                    RTile::new(vec![])
+                    String::new()
                 }
             });
-            let result = inner_tile_value.reevaluate();
+            
             TL_PROCESSED_TILES
-                .with_borrow_mut(|v| v.insert(inner_tile_name.clone(), result.clone()));
+                .with_borrow_mut(|v| v.insert(inner_tile_name.clone(), result));
         }
     }
 }
@@ -1146,14 +1127,14 @@ fn check_for_recursion_in_inner_tiles(
                         if direct_parents.contains(inner_tile_name) {
                             panic!("detected a recursion");
                         } else {
-                            let inner_tile_value = v.get(inner_tile_name).unwrap().clone();
+                            let inner_tile_value = v.get(inner_tile_name).unwrap();
                             inner_tiles.push(inner_tile_name.clone());
 
                             let mut all_direct_parents = direct_parents.clone();
                             all_direct_parents.insert(inner_tile_name.clone());
                             check_for_recursion_in_inner_tiles(
                                 inner_tile_name,
-                                &inner_tile_value,
+                                inner_tile_value,
                                 processed_tiles,
                                 inner_tiles,
                                 &all_direct_parents,
@@ -1206,12 +1187,12 @@ fn find_inner_tiles(
             } else {
                 TL_RAW_TILES.with_borrow(|v| {
                     if v.contains_key(inner_tile_name) {
-                        let inner_tile_value = v.get(inner_tile_name).unwrap().clone();
+                        let inner_tile_value = v.get(inner_tile_name).unwrap();
                         inner_tiles.push(inner_tile_name.clone());
 
                         find_inner_tiles(
                             inner_tile_name,
-                            &inner_tile_value,
+                            inner_tile_value,
                             processed_tiles,
                             inner_tiles,
                         );
@@ -1262,7 +1243,7 @@ fn identify_any_missing_inner_tiles(
             } else {
                 TL_RAW_TILES.with_borrow(|v| {
                     if v.contains_key(inner_tile_name) {
-                        let inner_tile_value = v.get(inner_tile_name).unwrap().clone();
+                        let inner_tile_value = v.get(inner_tile_name).unwrap();
 
                         identify_any_missing_inner_tiles(
                             Some(inner_tile_name.clone()),
@@ -1320,7 +1301,7 @@ fn get_blank_inner_tiles_names(
             } else {
                 TL_RAW_TILES.with_borrow(|v| {
                     if v.contains_key(inner_tile_name) {
-                        let inner_tile_value = v.get(inner_tile_name).unwrap().clone();
+                        let inner_tile_value = v.get(inner_tile_name).unwrap();
                         if inner_tile_value.lns == Vec::<String>::new() {
                             blank_inner_tiles.push(inner_tile_name.clone());
                         }
