@@ -949,7 +949,13 @@ fn find_next_inner_tile_name_and_do_append_the_inbetween_text(
     end: &mut usize,
     curr: &mut Vec<String>,
 ) -> Option<String> {
-    find_next_inner_tile_name_and_maybe_do_append_the_inbetween_text(ln, current_cursor, end, curr, true)
+    find_next_inner_tile_name_and_maybe_do_append_the_inbetween_text(
+        ln,
+        current_cursor,
+        end,
+        curr,
+        true,
+    )
 }
 
 fn find_next_inner_tile_name_and_maybe_do_append_the_inbetween_text(
