@@ -797,19 +797,16 @@ thread_local! {
     static TL_RAW_TILES: RefCell<HashMap<String, RTile>> = RefCell::new(HashMap::new());
 }
 
-#[no_mangle]
 #[doc(hidden)]
 pub fn set_tiles(key: String, value: String) {
     TL_PROCESSED_TILES.with_borrow_mut(|v| v.insert(key, value));
 }
 
-#[no_mangle]
 #[doc(hidden)]
 pub fn set_raw_tiles(key: String, value: RTile) {
     TL_RAW_TILES.with_borrow_mut(|v| v.insert(key, value));
 }
 
-#[no_mangle]
 #[doc(hidden)]
 pub fn get_raw_tile(key: &str) -> Option<RTile> {
     let key = &key.to_string();
@@ -838,7 +835,6 @@ pub fn get_raw_tile(key: &str) -> Option<RTile> {
 /// //If the tile is not present, a blank tile would be created using that name
 /// assert_eq!(ts!("@{tile1}-@{tile2}"), "-".to_string());
 /// ```
-#[no_mangle]
 pub fn remove_tile(key: &str) {
     let key = &key.to_string();
     TL_RAW_TILES.with_borrow_mut(|v| v.remove(key));
@@ -857,7 +853,6 @@ pub fn remove_tile(key: &str) {
 /// //If the tile is not present, a blank tile would be created using that name
 /// assert_eq!(ts!("@{tile1}-@{tile2}"), "-".to_string());
 /// ```
-#[no_mangle]
 pub fn clear_tiles() {
     TL_RAW_TILES.with_borrow_mut(|v| v.clear());
     TL_PROCESSED_TILES.with_borrow_mut(|v| v.clear());
@@ -873,7 +868,6 @@ pub fn clear_tiles() {
 /// assert_eq!(result.contains(&"tile1".to_string()), true);
 /// assert_eq!(result.contains(&"tile2".to_string()), true);
 /// ```
-#[no_mangle]
 pub fn get_blank_tiles() -> HashSet<String> {
     let mut blank_tiles = HashSet::new();
     TL_RAW_TILES.with_borrow(|v| {
@@ -940,19 +934,25 @@ where
 }
 
 fn get_inner_tile_name(ln: &str, current_cursor: &mut usize, end: &mut usize) -> Option<String> {
-    find_and_maybe_process_inner_tile(ln, current_cursor, end, &mut Vec::<String>::new(), false)
+    find_next_inner_tile_name_and_maybe_do_append_the_inbetween_text(
+        ln,
+        current_cursor,
+        end,
+        &mut Vec::<String>::new(),
+        false,
+    )
 }
 
-fn find_and_process_inner_tile(
+fn find_next_inner_tile_name_and_do_append_the_inbetween_text(
     ln: &str,
     current_cursor: &mut usize,
     end: &mut usize,
     curr: &mut Vec<String>,
 ) -> Option<String> {
-    find_and_maybe_process_inner_tile(ln, current_cursor, end, curr, true)
+    find_next_inner_tile_name_and_maybe_do_append_the_inbetween_text(ln, current_cursor, end, curr, true)
 }
 
-fn find_and_maybe_process_inner_tile(
+fn find_next_inner_tile_name_and_maybe_do_append_the_inbetween_text(
     ln: &str,
     current_cursor: &mut usize,
     end: &mut usize,
@@ -984,7 +984,6 @@ fn find_and_maybe_process_inner_tile(
     Some(tile_name)
 }
 
-#[no_mangle]
 fn r_format_using_processed_tiles_data(s: &str) -> Vec<String> {
     let lns: Vec<&str> = s.split('\n').collect();
     let mut res = vec![];
@@ -993,9 +992,12 @@ fn r_format_using_processed_tiles_data(s: &str) -> Vec<String> {
         let mut current_cursor = 0_usize;
         let mut end = 0;
 
-        while let Some(tile_name) =
-            find_and_process_inner_tile(ln, &mut current_cursor, &mut end, &mut curr)
-        {
+        while let Some(tile_name) = find_next_inner_tile_name_and_do_append_the_inbetween_text(
+            ln,
+            &mut current_cursor,
+            &mut end,
+            &mut curr,
+        ) {
             TL_PROCESSED_TILES.with_borrow(|v| {
                 if v.contains_key(&tile_name) {
                     let tile_value = v.get(&tile_name).unwrap();
@@ -1011,7 +1013,6 @@ fn r_format_using_processed_tiles_data(s: &str) -> Vec<String> {
     res
 }
 
-#[no_mangle]
 fn r_format_using_raw_tiles_data(s: &str) -> Vec<String> {
     let lns: Vec<&str> = s.split('\n').collect();
     let mut res = vec![];
@@ -1020,9 +1021,12 @@ fn r_format_using_raw_tiles_data(s: &str) -> Vec<String> {
         let mut current_cursor = 0_usize;
         let mut end = 0;
 
-        while let Some(tile_name) =
-            find_and_process_inner_tile(ln, &mut current_cursor, &mut end, &mut curr)
-        {
+        while let Some(tile_name) = find_next_inner_tile_name_and_do_append_the_inbetween_text(
+            ln,
+            &mut current_cursor,
+            &mut end,
+            &mut curr,
+        ) {
             TL_RAW_TILES.with_borrow(|v_raw| {
                 if v_raw.contains_key(&tile_name) {
                     let tile_value = v_raw.get(&tile_name).unwrap();
@@ -1048,7 +1052,6 @@ fn r_format_using_raw_tiles_data(s: &str) -> Vec<String> {
     res
 }
 
-#[no_mangle]
 fn check_for_recursion_of_tiles(tile_name: &String, tile_value: &RTile) {
     let mut inner_tiles: Vec<String> = vec![];
     let mut processed_tiles: HashSet<String> = HashSet::new();
@@ -1063,7 +1066,6 @@ fn check_for_recursion_of_tiles(tile_name: &String, tile_value: &RTile) {
     );
 }
 
-#[no_mangle]
 fn process_all_required_tiles_data(tile_name: &String, tile_value: &RTile) {
     let mut inner_tiles: Vec<String> = vec![tile_name.clone()];
     let mut processed_tiles: HashSet<String> = HashSet::new();
@@ -1094,7 +1096,6 @@ fn process_all_required_tiles_data(tile_name: &String, tile_value: &RTile) {
     }
 }
 
-#[no_mangle]
 fn check_for_recursion_in_inner_tiles(
     tile_name: &String,
     tile_value: &RTile,
@@ -1107,9 +1108,12 @@ fn check_for_recursion_in_inner_tiles(
         let mut current_cursor = 0_usize;
         let mut end = 0;
 
-        while let Some(inner_tile_name) =
-            find_and_process_inner_tile(ln, &mut current_cursor, &mut end, &mut curr)
-        {
+        while let Some(inner_tile_name) = find_next_inner_tile_name_and_do_append_the_inbetween_text(
+            ln,
+            &mut current_cursor,
+            &mut end,
+            &mut curr,
+        ) {
             if processed_tiles.contains(&inner_tile_name) {
                 continue;
             } else {
@@ -1141,7 +1145,6 @@ fn check_for_recursion_in_inner_tiles(
     }
 }
 
-#[no_mangle]
 fn find_inner_tiles(
     tile_name: &String,
     tile_value: &RTile,
@@ -1152,9 +1155,12 @@ fn find_inner_tiles(
         let mut curr = vec![];
         let mut current_cursor = 0_usize;
         let mut end = 0;
-        while let Some(inner_tile_name) =
-            find_and_process_inner_tile(ln, &mut current_cursor, &mut end, &mut curr)
-        {
+        while let Some(inner_tile_name) = find_next_inner_tile_name_and_do_append_the_inbetween_text(
+            ln,
+            &mut current_cursor,
+            &mut end,
+            &mut curr,
+        ) {
             if processed_tiles.contains(&inner_tile_name) {
                 continue;
             } else {
@@ -1179,7 +1185,6 @@ fn find_inner_tiles(
     }
 }
 
-#[no_mangle]
 fn identify_any_missing_inner_tiles(
     tile_name: Option<String>,
     tile_lns: &Vec<String>,
@@ -1190,9 +1195,12 @@ fn identify_any_missing_inner_tiles(
         let mut curr = vec![];
         let mut current_cursor = 0_usize;
         let mut end = 0;
-        while let Some(inner_tile_name) =
-            find_and_process_inner_tile(ln, &mut current_cursor, &mut end, &mut curr)
-        {
+        while let Some(inner_tile_name) = find_next_inner_tile_name_and_do_append_the_inbetween_text(
+            ln,
+            &mut current_cursor,
+            &mut end,
+            &mut curr,
+        ) {
             if processed_tiles.contains(&inner_tile_name) {
                 continue;
             } else {
@@ -1219,7 +1227,6 @@ fn identify_any_missing_inner_tiles(
     }
 }
 
-#[no_mangle]
 fn get_blank_inner_tiles_names(
     tile_name: Option<String>,
     tile_lns: &Vec<String>,
@@ -1230,9 +1237,12 @@ fn get_blank_inner_tiles_names(
         let mut curr = vec![];
         let mut current_cursor = 0_usize;
         let mut end = 0;
-        while let Some(inner_tile_name) =
-            find_and_process_inner_tile(ln, &mut current_cursor, &mut end, &mut curr)
-        {
+        while let Some(inner_tile_name) = find_next_inner_tile_name_and_do_append_the_inbetween_text(
+            ln,
+            &mut current_cursor,
+            &mut end,
+            &mut curr,
+        ) {
             if processed_tiles.contains(&inner_tile_name) {
                 continue;
             } else {
@@ -1270,7 +1280,6 @@ pub struct RTile {
 }
 
 impl RTile {
-    #[no_mangle]
     pub fn new_str(lns: Vec<&str>) -> Self {
         let lns: Vec<String> = lns.iter().map(|&item| item.to_string()).collect();
         create_blank_tiles_of_any_missing_inner_tiles(None, &lns);
@@ -1281,7 +1290,6 @@ impl RTile {
         }
     }
 
-    #[no_mangle]
     pub fn new(lns: Vec<String>) -> Self {
         create_blank_tiles_of_any_missing_inner_tiles(None, &lns);
         Self {
@@ -1291,7 +1299,6 @@ impl RTile {
         }
     }
 
-    #[no_mangle]
     pub fn construct_from_str(val: &str) -> Self {
         let lns: Vec<&str> = val.split('\n').collect();
         let lns: Vec<String> = lns.iter().map(|&item| item.to_string()).collect();
@@ -1303,7 +1310,6 @@ impl RTile {
         }
     }
 
-    #[no_mangle]
     pub fn new_without_trimming_str(lns: Vec<&str>) -> Self {
         let lns: Vec<String> = lns.iter().map(|&item| item.to_string()).collect();
         create_blank_tiles_of_any_missing_inner_tiles(None, &lns);
@@ -1314,7 +1320,6 @@ impl RTile {
         }
     }
 
-    #[no_mangle]
     pub fn new_without_trimming(lns: Vec<String>) -> Self {
         create_blank_tiles_of_any_missing_inner_tiles(None, &lns);
         Self {
@@ -1324,7 +1329,6 @@ impl RTile {
         }
     }
 
-    #[no_mangle]
     pub fn from_str_without_trimming(val: &str) -> Self {
         let lns: Vec<&str> = val.split('\n').collect();
         let lns: Vec<String> = lns.iter().map(|&item| item.to_string()).collect();
@@ -1336,7 +1340,6 @@ impl RTile {
         }
     }
 
-    #[no_mangle]
     pub fn get_names_of_blank_inner_tiles(&self) -> Vec<String> {
         let mut processed_tiles: HashSet<String> = HashSet::new();
         let mut blank_inner_tiles = vec![];
@@ -1349,7 +1352,6 @@ impl RTile {
         blank_inner_tiles
     }
 
-    #[no_mangle]
     pub fn reevaluate(&self) -> String {
         // calling r_format_using_processed_tiles_data, as all the inner tiles are supposed to be reevaluated / processed by now
         trim(
@@ -1458,14 +1460,12 @@ impl RTile {
     /// let tile = t!("   @{another_tile_one}             @{another_tile_two}       ");
     /// calling tile.raw(); would return a trimmed, non-expanded raw data of the tile
     /// so tile.raw() == "@{another_tile_one}             @{another_tile_two}".to_string();
-    #[no_mangle]
     pub fn raw(&self) -> String {
         trim(self.lns.clone(), self.do_trimming)
             .join("\n")
             .to_string()
     }
 
-    #[no_mangle]
     pub fn has_inner_tiles_in_raw_data(&self) -> bool {
         for ln in &self.lns {
             let start = ln[..].find("@{").unwrap_or(ln.len());
@@ -1481,7 +1481,6 @@ impl RTile {
         false
     }
 
-    #[no_mangle]
     pub fn inner_tiles_in_raw_data(&self) -> Vec<Vec<String>> {
         let mut result = vec![];
         for ln in &self.lns {
@@ -1497,7 +1496,6 @@ impl RTile {
         result
     }
 
-    #[no_mangle]
     pub fn inner_tiles(&self) -> HashSet<String> {
         let mut inner_tiles: Vec<String> = vec![];
         let mut processed_tiles: HashSet<String> = HashSet::new();
@@ -1527,7 +1525,6 @@ impl RTile {
     }
 }
 
-#[no_mangle]
 fn create_blank_tiles_of_any_missing_inner_tiles(name: Option<String>, lns: &Vec<String>) {
     let mut processed_tiles: HashSet<String> = HashSet::new();
     let mut missing_inner_tiles: HashSet<String> = HashSet::new();
@@ -1553,7 +1550,6 @@ fn create_blank_tiles_of_any_missing_inner_tiles(name: Option<String>, lns: &Vec
 impl Add for RTile {
     type Output = Self;
 
-    #[no_mangle]
     fn add(self, other: RTile) -> Self::Output {
         let mut lns = self.lns.clone();
         append(&mut lns, other.lns);
@@ -1569,7 +1565,6 @@ impl Add for RTile {
 }
 
 impl AddAssign for RTile {
-    #[no_mangle]
     fn add_assign(&mut self, other: Self) {
         append(&mut self.lns, other.lns);
     }
@@ -1578,7 +1573,6 @@ impl AddAssign for RTile {
 impl BitOr for RTile {
     type Output = Self;
 
-    #[no_mangle]
     fn bitor(self, other: RTile) -> Self::Output {
         let lns = [&self.lns[..], &other.lns[..]].concat();
 
@@ -1593,14 +1587,12 @@ impl BitOr for RTile {
 }
 
 impl BitOrAssign for RTile {
-    #[no_mangle]
     fn bitor_assign(&mut self, other: Self) {
         self.lns = [&self.lns[..], &other.lns[..]].concat();
     }
 }
 
 impl Display for RTile {
-    #[no_mangle]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         if self.do_trimming {
             write!(
