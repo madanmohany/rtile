@@ -939,6 +939,51 @@ where
     }
 }
 
+fn get_inner_tile_name(ln: &str, current_cursor: &mut usize, end: &mut usize) -> Option<String> {
+    find_and_maybe_process_inner_tile(ln, current_cursor, end, &mut Vec::<String>::new(), false)
+}
+
+fn find_and_process_inner_tile(
+    ln: &str,
+    current_cursor: &mut usize,
+    end: &mut usize,
+    curr: &mut Vec<String>,
+) -> Option<String> {
+    find_and_maybe_process_inner_tile(ln, current_cursor, end, curr, true)
+}
+
+fn find_and_maybe_process_inner_tile(
+    ln: &str,
+    current_cursor: &mut usize,
+    end: &mut usize,
+    curr: &mut Vec<String>,
+    do_append: bool,
+) -> Option<String> {
+    let mut start = ln[*current_cursor..].find("@{").unwrap_or(ln.len());
+    if *current_cursor == ln.len() && start == ln.len() && *end == ln.len() && !ln.is_empty() {
+        return None;
+    }
+    if start < ln.len() {
+        start += *current_cursor;
+    }
+
+    if do_append {
+        append(curr, vec![&ln[*end..start]]);
+    }
+
+    if start == ln.len() {
+        return None;
+    }
+    *end = ln[start..].find('}').map_or(0, |i| i + 1);
+    if *end == 0 {
+        panic!("unfinished @{{}} expression");
+    }
+    *end += start;
+    *current_cursor = *end;
+    let tile_name = ln[start + 2..*end - 1].to_string();
+    Some(tile_name)
+}
+
 #[no_mangle]
 fn r_format_using_processed_tiles_data(s: &str) -> Vec<String> {
     let lns: Vec<&str> = s.split('\n').collect();
@@ -947,30 +992,13 @@ fn r_format_using_processed_tiles_data(s: &str) -> Vec<String> {
         let mut curr = vec![];
         let mut current_cursor = 0_usize;
         let mut end = 0;
-        loop {
-            let mut start = ln[current_cursor..].find("@{").unwrap_or(ln.len());
-            if current_cursor == ln.len() && start == ln.len() && end == ln.len() && !ln.is_empty()
-            {
-                break;
-            }
-            if start < ln.len() {
-                start += current_cursor;
-            }
-            append(&mut curr, vec![&ln[end..start]]);
-            if start == ln.len() {
-                break;
-            }
-            end = ln[start..].find('}').map_or(0, |i| i + 1);
-            if end == 0 {
-                panic!("unifinished @{{}} expression");
-            }
-            end += start;
-            let tile_name = &ln[start + 2..end - 1].to_string();
-            current_cursor = end;
 
+        while let Some(tile_name) =
+            find_and_process_inner_tile(ln, &mut current_cursor, &mut end, &mut curr)
+        {
             TL_PROCESSED_TILES.with_borrow(|v| {
-                if v.contains_key(tile_name) {
-                    let tile_value = v.get(tile_name).unwrap();
+                if v.contains_key(&tile_name) {
+                    let tile_value = v.get(&tile_name).unwrap();
                     let lns: Vec<&str> = tile_value.split('\n').collect();
                     append(&mut curr, lns);
                 } else {
@@ -991,36 +1019,19 @@ fn r_format_using_raw_tiles_data(s: &str) -> Vec<String> {
         let mut curr = vec![];
         let mut current_cursor = 0_usize;
         let mut end = 0;
-        loop {
-            let mut start = ln[current_cursor..].find("@{").unwrap_or(ln.len());
-            if current_cursor == ln.len() && start == ln.len() && end == ln.len() && !ln.is_empty()
-            {
-                break;
-            }
-            if start < ln.len() {
-                start += current_cursor;
-            }
-            append(&mut curr, vec![&ln[end..start]]);
-            if start == ln.len() {
-                break;
-            }
-            end = ln[start..].find('}').map_or(0, |i| i + 1);
-            if end == 0 {
-                panic!("unifinished @{{}} expression");
-            }
-            end += start;
-            let tile_name = &ln[start + 2..end - 1].to_string();
-            current_cursor = end;
 
+        while let Some(tile_name) =
+            find_and_process_inner_tile(ln, &mut current_cursor, &mut end, &mut curr)
+        {
             TL_RAW_TILES.with_borrow(|v_raw| {
-                if v_raw.contains_key(tile_name) {
-                    let tile_value = v_raw.get(tile_name).unwrap();
-                    check_for_recursion_of_tiles(tile_name, tile_value);
-                    process_all_required_tiles_data(tile_name, tile_value);
+                if v_raw.contains_key(&tile_name) {
+                    let tile_value = v_raw.get(&tile_name).unwrap();
+                    check_for_recursion_of_tiles(&tile_name, tile_value);
+                    process_all_required_tiles_data(&tile_name, tile_value);
 
                     TL_PROCESSED_TILES.with_borrow(|v| {
-                        if v.contains_key(tile_name) {
-                            let tile_value = v.get(tile_name).unwrap();
+                        if v.contains_key(&tile_name) {
+                            let tile_value = v.get(&tile_name).unwrap();
                             let lns: Vec<&str> = tile_value.split('\n').collect();
                             append(&mut curr, lns);
                         } else {
@@ -1077,9 +1088,8 @@ fn process_all_required_tiles_data(tile_name: &String, tile_value: &RTile) {
                     String::new()
                 }
             });
-            
-            TL_PROCESSED_TILES
-                .with_borrow_mut(|v| v.insert(inner_tile_name.clone(), result));
+
+            TL_PROCESSED_TILES.with_borrow_mut(|v| v.insert(inner_tile_name.clone(), result));
         }
     }
 }
@@ -1096,42 +1106,25 @@ fn check_for_recursion_in_inner_tiles(
         let mut curr = vec![];
         let mut current_cursor = 0_usize;
         let mut end = 0;
-        loop {
-            let mut start = ln[current_cursor..].find("@{").unwrap_or(ln.len());
-            if current_cursor == ln.len() && start == ln.len() && end == ln.len() && !ln.is_empty()
-            {
-                break;
-            }
-            if start < ln.len() {
-                start += current_cursor;
-            }
-            append(&mut curr, vec![&ln[end..start]]);
-            if start == ln.len() {
-                break;
-            }
-            end = ln[start..].find('}').map_or(0, |i| i + 1);
-            if end == 0 {
-                panic!("unifinished @{{}} expression");
-            }
-            end += start;
-            current_cursor = end;
 
-            let inner_tile_name = &ln[start + 2..end - 1].to_string();
-            if processed_tiles.contains(inner_tile_name) {
+        while let Some(inner_tile_name) =
+            find_and_process_inner_tile(ln, &mut current_cursor, &mut end, &mut curr)
+        {
+            if processed_tiles.contains(&inner_tile_name) {
                 continue;
             } else {
                 TL_RAW_TILES.with_borrow(|v| {
-                    if v.contains_key(inner_tile_name) {
-                        if direct_parents.contains(inner_tile_name) {
+                    if v.contains_key(&inner_tile_name) {
+                        if direct_parents.contains(&inner_tile_name) {
                             panic!("detected a recursion");
                         } else {
-                            let inner_tile_value = v.get(inner_tile_name).unwrap();
+                            let inner_tile_value = v.get(&inner_tile_name).unwrap();
                             inner_tiles.push(inner_tile_name.clone());
 
                             let mut all_direct_parents = direct_parents.clone();
                             all_direct_parents.insert(inner_tile_name.clone());
                             check_for_recursion_in_inner_tiles(
-                                inner_tile_name,
+                                &inner_tile_name,
                                 inner_tile_value,
                                 processed_tiles,
                                 inner_tiles,
@@ -1159,37 +1152,19 @@ fn find_inner_tiles(
         let mut curr = vec![];
         let mut current_cursor = 0_usize;
         let mut end = 0;
-        loop {
-            let mut start = ln[current_cursor..].find("@{").unwrap_or(ln.len());
-            if current_cursor == ln.len() && start == ln.len() && end == ln.len() && !ln.is_empty()
-            {
-                break;
-            }
-            if start < ln.len() {
-                start += current_cursor;
-            }
-            append(&mut curr, vec![&ln[end..start]]);
-            if start == ln.len() {
-                break;
-            }
-            end = ln[start..].find('}').map_or(0, |i| i + 1);
-            if end == 0 {
-                panic!("unifinished @{{}} expression");
-            }
-            end += start;
-            current_cursor = end;
-
-            let inner_tile_name = &ln[start + 2..end - 1].to_string();
-            if processed_tiles.contains(inner_tile_name) {
+        while let Some(inner_tile_name) =
+            find_and_process_inner_tile(ln, &mut current_cursor, &mut end, &mut curr)
+        {
+            if processed_tiles.contains(&inner_tile_name) {
                 continue;
             } else {
                 TL_RAW_TILES.with_borrow(|v| {
-                    if v.contains_key(inner_tile_name) {
-                        let inner_tile_value = v.get(inner_tile_name).unwrap();
+                    if v.contains_key(&inner_tile_name) {
+                        let inner_tile_value = v.get(&inner_tile_name).unwrap();
                         inner_tiles.push(inner_tile_name.clone());
 
                         find_inner_tiles(
-                            inner_tile_name,
+                            &inner_tile_name,
                             inner_tile_value,
                             processed_tiles,
                             inner_tiles,
@@ -1215,33 +1190,15 @@ fn identify_any_missing_inner_tiles(
         let mut curr = vec![];
         let mut current_cursor = 0_usize;
         let mut end = 0;
-        loop {
-            let mut start = ln[current_cursor..].find("@{").unwrap_or(ln.len());
-            if current_cursor == ln.len() && start == ln.len() && end == ln.len() && !ln.is_empty()
-            {
-                break;
-            }
-            if start < ln.len() {
-                start += current_cursor;
-            }
-            append(&mut curr, vec![&ln[end..start]]);
-            if start == ln.len() {
-                break;
-            }
-            end = ln[start..].find('}').map_or(0, |i| i + 1);
-            if end == 0 {
-                panic!("unifinished @{{}} expression");
-            }
-            end += start;
-            current_cursor = end;
-
-            let inner_tile_name = &ln[start + 2..end - 1].to_string();
-            if processed_tiles.contains(inner_tile_name) {
+        while let Some(inner_tile_name) =
+            find_and_process_inner_tile(ln, &mut current_cursor, &mut end, &mut curr)
+        {
+            if processed_tiles.contains(&inner_tile_name) {
                 continue;
             } else {
                 TL_RAW_TILES.with_borrow(|v| {
-                    if v.contains_key(inner_tile_name) {
-                        let inner_tile_value = v.get(inner_tile_name).unwrap();
+                    if v.contains_key(&inner_tile_name) {
+                        let inner_tile_value = v.get(&inner_tile_name).unwrap();
 
                         identify_any_missing_inner_tiles(
                             Some(inner_tile_name.clone()),
@@ -1249,7 +1206,7 @@ fn identify_any_missing_inner_tiles(
                             processed_tiles,
                             missing_inner_tiles,
                         );
-                    } else if missing_inner_tiles.contains(inner_tile_name) {
+                    } else if missing_inner_tiles.contains(&inner_tile_name) {
                     } else {
                         missing_inner_tiles.insert(inner_tile_name.clone());
                     }
@@ -1273,39 +1230,21 @@ fn get_blank_inner_tiles_names(
         let mut curr = vec![];
         let mut current_cursor = 0_usize;
         let mut end = 0;
-        loop {
-            let mut start = ln[current_cursor..].find("@{").unwrap_or(ln.len());
-            if current_cursor == ln.len() && start == ln.len() && end == ln.len() && !ln.is_empty()
-            {
-                break;
-            }
-            if start < ln.len() {
-                start += current_cursor;
-            }
-            append(&mut curr, vec![&ln[end..start]]);
-            if start == ln.len() {
-                break;
-            }
-            end = ln[start..].find('}').map_or(0, |i| i + 1);
-            if end == 0 {
-                panic!("unifinished @{{}} expression");
-            }
-            end += start;
-            current_cursor = end;
-
-            let inner_tile_name = &ln[start + 2..end - 1].to_string();
-            if processed_tiles.contains(inner_tile_name) {
+        while let Some(inner_tile_name) =
+            find_and_process_inner_tile(ln, &mut current_cursor, &mut end, &mut curr)
+        {
+            if processed_tiles.contains(&inner_tile_name) {
                 continue;
             } else {
                 TL_RAW_TILES.with_borrow(|v| {
-                    if v.contains_key(inner_tile_name) {
-                        let inner_tile_value = v.get(inner_tile_name).unwrap();
+                    if v.contains_key(&inner_tile_name) {
+                        let inner_tile_value = v.get(&inner_tile_name).unwrap();
                         if inner_tile_value.lns == Vec::<String>::new() {
                             blank_inner_tiles.push(inner_tile_name.clone());
                         }
 
                         get_blank_inner_tiles_names(
-                            Some(inner_tile_name.clone()),
+                            Some(inner_tile_name),
                             &inner_tile_value.lns,
                             processed_tiles,
                             blank_inner_tiles,
@@ -1530,13 +1469,12 @@ impl RTile {
     pub fn has_inner_tiles_in_raw_data(&self) -> bool {
         for ln in &self.lns {
             let start = ln[..].find("@{").unwrap_or(ln.len());
-
             if start == ln.len() {
                 continue;
             }
             let end = ln[start..].find('}').map_or(0, |i| i + 1);
             if end == 0 {
-                panic!("unifinished @{{}} expression");
+                panic!("unfinished @{{}} expression");
             }
             return true;
         }
@@ -1550,27 +1488,7 @@ impl RTile {
             let mut tiles_on_line = vec![];
             let mut current_cursor = 0_usize;
             let mut end = 0;
-            loop {
-                let mut start = ln[current_cursor..].find("@{").unwrap_or(ln.len());
-                if current_cursor == ln.len()
-                    && start == ln.len()
-                    && end == ln.len()
-                    && !ln.is_empty()
-                {
-                    break;
-                }
-                if start < ln.len() {
-                    start += current_cursor;
-                }
-                if start == ln.len() {
-                    break;
-                }
-                end = ln[start..].find('}').map_or(0, |i| i + 1);
-                if end == 0 {
-                    panic!("unifinished @{{}} expression");
-                }
-                end += start;
-                let tile_name = &ln[start + 2..end - 1].to_string();
+            while let Some(tile_name) = get_inner_tile_name(ln, &mut current_cursor, &mut end) {
                 tiles_on_line.push(tile_name.clone());
                 current_cursor = end;
             }
