@@ -933,37 +933,31 @@ where
     }
 }
 
-fn get_inner_tile_name(ln: &str, current_cursor: &mut usize, end: &mut usize) -> Option<String> {
-    find_next_inner_tile_name_and_maybe_do_append_the_inbetween_text(
+enum ExtraSteps {
+    DoNothing,
+    DoAppendTheTextFromCursorToInnerTileNameOrTheEndOfLine,
+}
+
+fn get_next_inner_tile_name(
+    ln: &str,
+    current_cursor: &mut usize,
+    end: &mut usize,
+) -> Option<String> {
+    find_next_inner_tile_name(
         ln,
         current_cursor,
         end,
         &mut Vec::<String>::new(),
-        false,
+        ExtraSteps::DoNothing,
     )
 }
 
-fn find_next_inner_tile_name_and_do_append_the_inbetween_text(
+fn find_next_inner_tile_name(
     ln: &str,
     current_cursor: &mut usize,
     end: &mut usize,
     curr: &mut Vec<String>,
-) -> Option<String> {
-    find_next_inner_tile_name_and_maybe_do_append_the_inbetween_text(
-        ln,
-        current_cursor,
-        end,
-        curr,
-        true,
-    )
-}
-
-fn find_next_inner_tile_name_and_maybe_do_append_the_inbetween_text(
-    ln: &str,
-    current_cursor: &mut usize,
-    end: &mut usize,
-    curr: &mut Vec<String>,
-    do_append: bool,
+    extra_steps: ExtraSteps,
 ) -> Option<String> {
     let mut start = ln[*current_cursor..].find("@{").unwrap_or(ln.len());
     if *current_cursor == ln.len() && start == ln.len() && *end == ln.len() && !ln.is_empty() {
@@ -973,7 +967,7 @@ fn find_next_inner_tile_name_and_maybe_do_append_the_inbetween_text(
         start += *current_cursor;
     }
 
-    if do_append {
+    if let ExtraSteps::DoAppendTheTextFromCursorToInnerTileNameOrTheEndOfLine = extra_steps {
         append(curr, vec![&ln[*end..start]]);
     }
 
@@ -998,11 +992,12 @@ fn r_format_using_processed_tiles_data(s: &str) -> Vec<String> {
         let mut current_cursor = 0_usize;
         let mut end = 0;
 
-        while let Some(tile_name) = find_next_inner_tile_name_and_do_append_the_inbetween_text(
+        while let Some(tile_name) = find_next_inner_tile_name(
             ln,
             &mut current_cursor,
             &mut end,
             &mut curr,
+            ExtraSteps::DoAppendTheTextFromCursorToInnerTileNameOrTheEndOfLine,
         ) {
             TL_PROCESSED_TILES.with_borrow(|v| {
                 if v.contains_key(&tile_name) {
@@ -1027,11 +1022,12 @@ fn r_format_using_raw_tiles_data(s: &str) -> Vec<String> {
         let mut current_cursor = 0_usize;
         let mut end = 0;
 
-        while let Some(tile_name) = find_next_inner_tile_name_and_do_append_the_inbetween_text(
+        while let Some(tile_name) = find_next_inner_tile_name(
             ln,
             &mut current_cursor,
             &mut end,
             &mut curr,
+            ExtraSteps::DoAppendTheTextFromCursorToInnerTileNameOrTheEndOfLine,
         ) {
             TL_RAW_TILES.with_borrow(|v_raw| {
                 if v_raw.contains_key(&tile_name) {
@@ -1114,11 +1110,12 @@ fn check_for_recursion_in_inner_tiles(
         let mut current_cursor = 0_usize;
         let mut end = 0;
 
-        while let Some(inner_tile_name) = find_next_inner_tile_name_and_do_append_the_inbetween_text(
+        while let Some(inner_tile_name) = find_next_inner_tile_name(
             ln,
             &mut current_cursor,
             &mut end,
             &mut curr,
+            ExtraSteps::DoAppendTheTextFromCursorToInnerTileNameOrTheEndOfLine,
         ) {
             if processed_tiles.contains(&inner_tile_name) {
                 continue;
@@ -1161,11 +1158,12 @@ fn find_inner_tiles(
         let mut curr = vec![];
         let mut current_cursor = 0_usize;
         let mut end = 0;
-        while let Some(inner_tile_name) = find_next_inner_tile_name_and_do_append_the_inbetween_text(
+        while let Some(inner_tile_name) = find_next_inner_tile_name(
             ln,
             &mut current_cursor,
             &mut end,
             &mut curr,
+            ExtraSteps::DoAppendTheTextFromCursorToInnerTileNameOrTheEndOfLine,
         ) {
             if processed_tiles.contains(&inner_tile_name) {
                 continue;
@@ -1201,11 +1199,12 @@ fn identify_any_missing_inner_tiles(
         let mut curr = vec![];
         let mut current_cursor = 0_usize;
         let mut end = 0;
-        while let Some(inner_tile_name) = find_next_inner_tile_name_and_do_append_the_inbetween_text(
+        while let Some(inner_tile_name) = find_next_inner_tile_name(
             ln,
             &mut current_cursor,
             &mut end,
             &mut curr,
+            ExtraSteps::DoAppendTheTextFromCursorToInnerTileNameOrTheEndOfLine,
         ) {
             if processed_tiles.contains(&inner_tile_name) {
                 continue;
@@ -1243,11 +1242,12 @@ fn get_blank_inner_tiles_names(
         let mut curr = vec![];
         let mut current_cursor = 0_usize;
         let mut end = 0;
-        while let Some(inner_tile_name) = find_next_inner_tile_name_and_do_append_the_inbetween_text(
+        while let Some(inner_tile_name) = find_next_inner_tile_name(
             ln,
             &mut current_cursor,
             &mut end,
             &mut curr,
+            ExtraSteps::DoAppendTheTextFromCursorToInnerTileNameOrTheEndOfLine,
         ) {
             if processed_tiles.contains(&inner_tile_name) {
                 continue;
@@ -1493,7 +1493,8 @@ impl RTile {
             let mut tiles_on_line = vec![];
             let mut current_cursor = 0_usize;
             let mut end = 0;
-            while let Some(tile_name) = get_inner_tile_name(ln, &mut current_cursor, &mut end) {
+            while let Some(tile_name) = get_next_inner_tile_name(ln, &mut current_cursor, &mut end)
+            {
                 tiles_on_line.push(tile_name.clone());
                 current_cursor = end;
             }
