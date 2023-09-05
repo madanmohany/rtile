@@ -55,8 +55,6 @@ fn codegen() {
             .1
             .iter()
             .zip(&value.2)
-            .collect::<Vec<_>>()
-            .iter()
             .map(|(k, v)| {
                 if value.0 {
                     format!("pub {}: {},", k, v)
@@ -66,7 +64,8 @@ fn codegen() {
             })
             .collect();
         tp!(s_members, t!(val));
-        struct_codes.push(k!(gtp!(struct_def).unwrap()));
+        struct_codes.push(ts!("@{struct_def}"));
+
     }
     tp!(
         enum_def,
@@ -116,12 +115,11 @@ fn codegen() {
             .1
             .iter()
             .zip(&value.2)
-            .collect::<Vec<_>>()
-            .iter()
             .map(|(k, v)| format!("{}{},", k, v))
             .collect();
         tp!(e_members, t!(val));
-        enum_codes.push(k!(gtp!(enum_def).unwrap()));
+        enum_codes.push(ts!("@{enum_def}"));
+
     }
     let impls_default_enums = t!(r#"
         impl Default for Gender{
