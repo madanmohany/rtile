@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use rtile::*;
+    use rtile::prelude::*;
 
     fn c_1(tile: &RTile) -> Vec<&str> {
         match tile.lns.len() {

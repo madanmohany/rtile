@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use rtile::*;
+    use rtile::prelude::*;
 
     fn set_spacing(width_spacing: usize, height_spacing: usize) {
         //set the spacing if required - maintain unit spacing, that is sufficient to create the frame

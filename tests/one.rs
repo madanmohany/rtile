@@ -3,7 +3,7 @@ mod tests {
     use std::any::type_name;
     use std::collections::HashSet;
 
-    use rtile::*;
+    use rtile::prelude::*;
 
     fn type_of<T>(_: T) -> &'static str {
         type_name::<T>()

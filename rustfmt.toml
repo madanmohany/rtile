@@ -1,2 +1,3 @@
-imports_granularity = "Item"
-group_imports = "StdExternalCrate"
+# The below format options work in nightly build
+# imports_granularity = "Item"
+# group_imports = "StdExternalCrate"

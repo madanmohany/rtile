@@ -2,7 +2,7 @@
 //! rtile provides a way to work with rectangular areas of text as atomic units which can be used for code generation.
 //!
 //! ```
-//! use rtile::*;
+//! use rtile::prelude::*;
 //! kp!(greet_one, "Welcome to rtile!     ");
 //! tp!(greet_two, "Have a great day!");
 //! assert_eq!(ts!("@{greet_one}@{greet_two}"), "Welcome to rtile!     Have a great day!");
@@ -26,9 +26,21 @@ use std::ops::BitOr;
 use std::ops::BitOrAssign;
 
 ///
+/// Prelude for RTile
+///
+pub mod prelude {
+    pub use std::marker::PhantomData;
+    pub use std::rc::Rc;
+
+    pub use crate::*;
+}
+
+use prelude::*;
+
+///
 /// give a name to a tile using any string literal and persist it in tls (thread local storage)
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 /// let tile = t!("tile value");
 /// stp!(persisted_tile_name, tile);
 /// assert_eq!("tile value".to_string(), t!("@{persisted_tile_name}").to_string());
@@ -45,7 +57,7 @@ macro_rules! stp {
 ///
 /// give a name to a tile using a variable containing a string value and persist it in tls (thread local storage)
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 /// let tile = t!("tile value");
 /// let name_of_the_persisted_tile = "persisted_tile_name";
 /// stq!(name_of_the_persisted_tile, tile);
@@ -63,7 +75,7 @@ macro_rules! stq {
 ///
 /// get the tile which is persisted in the tls (thread local storage)
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 /// let tile = t!("tile value");
 /// stp!(persisted_tile_name, tile);
 /// let result = gtp!(persisted_tile_name).unwrap();
@@ -80,7 +92,7 @@ macro_rules! gtp {
 ///
 /// get the tile which is persisted in the tls (thread local storage) using a variable containing a string value
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 /// let tile = t!("tile value");
 /// stp!(persisted_tile_name, tile);
 /// let name_of_the_persisted_tile = "persisted_tile_name";
@@ -152,7 +164,7 @@ impl MacroAttributeForT for Vec<String> {
 /// tf! is used to flatten the multilines of the tile output into a single string
 ///
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 /// tp!(
 ///     tile_2,
 ///     "
@@ -203,7 +215,7 @@ macro_rules! tf {
 /// t! is to expand any inner tiles and to trim the white spaces around the block of text and return a tile
 ///
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 /// tp!(
 ///     tile_2,
 ///     "
@@ -243,6 +255,7 @@ macro_rules! t {
             name: None,
             lns: vec!["".to_string()],
             do_trimming: true,
+            marker: PhantomData::<Rc<()>>,
         }
     }};
     ($e:expr) => {{
@@ -257,7 +270,7 @@ macro_rules! t {
 /// tp! is to used to persist the tile into the tls (thread local storage), with a given name (string literal) and return a tile
 ///
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 /// tp!(
 ///     tile_one,
 ///     "
@@ -316,7 +329,7 @@ macro_rules! tp {
 ///
 /// ```
 ///         
-/// use rtile::*;
+/// use rtile::prelude::*;
 /// let persisted_tile_one = "tile_one";
 /// let persisted_tile_two = "tile_two";
 /// tq!(
@@ -379,7 +392,7 @@ macro_rules! tq {
 /// tt! is to used to expand the inner tiles and return the expanded ouput as a trimmed tile
 ///
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 ///
 /// tp!(numbers, "1, 2, 3, 4, 5");
 /// let mut result = tt!("Numbers: @{numbers}");
@@ -404,7 +417,7 @@ macro_rules! tt {
 /// ttp! is to used to expand the inner tiles, persist the result to tls (thread local storage) using a string literal and return a trimmed tile
 ///
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 ///
 /// tp!(numbers, "1, 2, 3, 4, 5");
 /// ttp!(numbers, "Numbers: @{numbers}");
@@ -432,7 +445,7 @@ macro_rules! ttp {
 /// ttq! is to used to expand the inner tiles, persist the result to tls (thread local storage) using a variable name and return a trimmed tile
 ///
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 ///
 /// tp!(numbers, "1, 2, 3, 4, 5");
 /// let persisted_tile_name = "numbers";
@@ -463,7 +476,7 @@ macro_rules! ttq {
 /// sr! returns the trimmed raw data of a tile
 ///
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 /// let tile = t!("
 ///                @{numbers}
 ///                @{alphabets}
@@ -484,7 +497,7 @@ macro_rules! sr {
 
 /// ts! is to expand any inner tiles and to trim the white spaces around the block of text and return a String
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 /// tp!(tile_one, "   one   ");
 /// tp!(tile_two, "   two   ");
 /// let result = ts!("
@@ -563,7 +576,7 @@ impl MacroAttributeForK for Vec<String> {
 /// kf! is used to flatten the multilines of the tile output into a single string, without trimming the white spaces. i.e. keep the white spaces
 ///
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 /// let v1 = vec!["  one  ", "  two  ", "  three  "];
 /// let val = k!(v1);
 /// assert_eq!(kf!(val), "  one    two    three  ");
@@ -584,7 +597,7 @@ macro_rules! kf {
 /// k! is to expand any inner tiles, to keep the white spaces (i.e. do not trim any white spaces around the block) and return a tile
 ///
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 ///
 /// let v1 = vec!["  one  ", "  two  ", "  three  "];
 /// let val = k!(v1);
@@ -600,6 +613,7 @@ macro_rules! k {
             name: None,
             lns: vec!["".to_string()],
             do_trimming: false,
+            marker: PhantomData::<Rc<()>>,
         }
     }};
     ($e:expr) => {{
@@ -614,7 +628,7 @@ macro_rules! k {
 /// kp! is to expand any inner tiles, to keep the white spaces (i.e. do not trim any white spaces around the block), with a given name (string literal) and return a tile
 ///
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 ///
 /// kp!(tile_1, " abc ");
 /// kp!(tile_2, "@{tile_1}");
@@ -651,7 +665,7 @@ macro_rules! kp {
 /// kq! is to expand any inner tiles, to keep the white spaces (i.e. do not trim any white spaces around the block), with a variable having a string value and return a tile
 ///
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 /// let t1 = "tile_1";
 /// let t2 = "tile_2";
 ///
@@ -693,7 +707,7 @@ macro_rules! kq {
 /// kk! is to used to expand the inner tiles, by keeping the white spaces (i.e. do not trim any white spaces around the block) and return a tile
 ///
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 ///
 /// kp!(numbers, "     1, 2, 3, 4, 5     ");
 /// let mut result = kk!("  Numbers: @{numbers}  ");
@@ -715,7 +729,7 @@ macro_rules! kk {
 /// kkp! is to used to expand the inner tiles, by keeping the white spaces (i.e. do not trim any white spaces around the block), persist the result to tls (thread local storage) using a string literal and return a tile
 ///
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 ///
 /// kp!(numbers, "     1, 2, 3, 4, 5     ");
 /// kkp!(numbers, "  Numbers: @{numbers}  ");
@@ -743,7 +757,7 @@ macro_rules! kkp {
 /// kkq! is to used to expand the inner tiles, by keeping the white spaces (i.e. do not trim any white spaces around the block), persist the result to tls (thread local storage) using a variable having a string value and return a tile
 ///
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 /// let tile_name = "numbers";
 /// kq!(tile_name, "     1, 2, 3, 4, 5     ");
 /// kkq!(tile_name, "  Numbers: @{numbers}  ");
@@ -772,7 +786,7 @@ macro_rules! kkq {
 
 /// ks! is to expand any inner tiles by keeping the white spaces (i.e. do not trim any white spaces around the block) and return a String
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 /// kp!(tile_one, "   one   ");
 /// kp!(tile_two, "   two   ");
 /// let result = ks!("@{tile_one}, @{tile_two}");
@@ -822,7 +836,7 @@ pub fn get_raw_tile(key: &str) -> Option<RTile> {
 
 /// remove_tile, used to remove a tile by name from the tls (thread local storage)
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 ///
 /// tp!(tile1, "one");
 /// tp!(tile2, "two");
@@ -843,7 +857,7 @@ pub fn remove_tile(key: &str) {
 
 /// clear_tiles, used to remove all tiles from the tls (thread local storage)
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 ///
 /// tp!(tile1, "one");
 /// tp!(tile2, "two");
@@ -860,7 +874,7 @@ pub fn clear_tiles() {
 
 /// get_blank_tiles, used to return blank tiles stored in the tls (thread local storage)
 /// ```
-/// use rtile::*;
+/// use rtile::prelude::*;
 ///
 /// t!("@{tile1}-@{tile2}");
 ///
@@ -1283,6 +1297,7 @@ pub struct RTile {
     pub name: Option<String>,
     pub lns: Vec<String>,
     pub do_trimming: bool,
+    pub marker: PhantomData<Rc<()>>,
 }
 
 impl RTile {
@@ -1293,6 +1308,7 @@ impl RTile {
             name: None,
             lns: trim(lns, true),
             do_trimming: true,
+            marker: PhantomData::<Rc<()>>,
         }
     }
 
@@ -1302,6 +1318,7 @@ impl RTile {
             name: None,
             lns: trim(lns, true),
             do_trimming: true,
+            marker: PhantomData::<Rc<()>>,
         }
     }
 
@@ -1313,6 +1330,7 @@ impl RTile {
             name: None,
             lns: trim(lns, true),
             do_trimming: true,
+            marker: PhantomData::<Rc<()>>,
         }
     }
 
@@ -1323,6 +1341,7 @@ impl RTile {
             name: None,
             lns: trim(lns, false),
             do_trimming: false,
+            marker: PhantomData::<Rc<()>>,
         }
     }
 
@@ -1332,6 +1351,7 @@ impl RTile {
             name: None,
             lns: trim(lns, false),
             do_trimming: false,
+            marker: PhantomData::<Rc<()>>,
         }
     }
 
@@ -1343,6 +1363,7 @@ impl RTile {
             name: None,
             lns: trim(lns, false),
             do_trimming: false,
+            marker: PhantomData::<Rc<()>>,
         }
     }
 
@@ -1545,6 +1566,7 @@ fn create_blank_tiles_of_any_missing_inner_tiles(name: Option<String>, lns: &Vec
                         name: Some(missing_inner_tile_name.clone()),
                         lns: vec![],
                         do_trimming: true,
+                        marker: PhantomData::<Rc<()>>,
                     },
                 )
             });
@@ -1567,6 +1589,7 @@ impl Add for RTile {
             name: None,
             lns,
             do_trimming: self.do_trimming,
+            marker: PhantomData::<Rc<()>>,
         }
     }
 }
@@ -1589,6 +1612,7 @@ impl BitOr for RTile {
             name: None,
             lns,
             do_trimming: self.do_trimming,
+            marker: PhantomData::<Rc<()>>,
         }
     }
 }

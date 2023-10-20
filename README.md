@@ -5,7 +5,7 @@ rtile provides a way to work with rectangular areas of text as atomic units whic
 ## How to use
 
 ```rust
-use rtile::*;
+use rtile::prelude::*;
 use std::collections::BTreeMap;
 
 fn codegen() {
@@ -121,73 +121,12 @@ fn codegen() {
         enum_codes.push(ts!("@{enum_def}"));
 
     }
-    let impls_default_enums = t!(r#"
-        impl Default for Gender{
-            fn default()->Self{
-                Gender::Unknown
-            }
-        }
-        impl Default for EmploymentStatus{
-            fn default()->Self{
-                EmploymentStatus::NotApplicable
-            }
-        }
-        impl Default for OtherDetails{
-            fn default()->Self{
-                Self::Miscellaneous{
-                    education: None, 
-                    employment_status: EmploymentStatus::default(),
-                }
-            }
-        }
-    "#);
-
-    tp!(
-        some_functions,
-        r#"
-            fn print_default_person(){
-                println!("{:#?}",Person::default());
-            }
-        "#
-    );
-    tp!(
-        main_function,
-        r#"
-            fn main(){
-                print_default_person();
-                /*
-                Person {
-                    name: "",
-                    age: 0,
-                    address: [],
-                    properties: Properties {
-                        gender: Unknown,
-                        kids: None,
-                        other_details: Miscellaneous {
-                            education: None,
-                            employment_status: NotApplicable,
-                        },
-                    },
-                }
-                */
-            }
-        "#
-    );
     struct_codes
     .into_iter()
     .for_each(|code_item| println!("{code_item}\n"));
     enum_codes
         .into_iter()
         .for_each(|code_item| println!("{code_item}\n"));
-    println!("{impls_default_enums}\n");
-    println!(
-        "{}",
-        t!("
-            @{some_functions}
-
-            @{main_function}
-        ")
-    );
 }
 
 fn main() {
@@ -240,47 +179,5 @@ pub enum Gender{
 #[derive(Debug)]
 pub enum OtherDetails{
     Miscellaneous{education: Option<String>, employment_status: EmploymentStatus,},
-}
-
-impl Default for Gender{
-    fn default()->Self{
-        Gender::Unknown
-    }
-}
-impl Default for EmploymentStatus{
-    fn default()->Self{
-        EmploymentStatus::NotApplicable
-    }
-}
-impl Default for OtherDetails{
-    fn default()->Self{
-        Self::Miscellaneous{
-            education: None,
-            employment_status: EmploymentStatus::default(),
-        }
-    }
-}
-
-fn print_default_person(){
-    println!("{:#?}",Person::default());
-}
-
-fn main(){
-    print_default_person();
-    /*
-    Person {
-        name: "",
-        age: 0,
-        address: [],
-        properties: Properties {
-            gender: Unknown,
-            kids: None,
-            other_details: Miscellaneous {
-                education: None,
-                employment_status: NotApplicable,
-            },
-        },
-    }
-    */
 }
 ```
