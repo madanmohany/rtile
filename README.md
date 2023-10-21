@@ -8,6 +8,10 @@ rtile provides a way to work with rectangular areas of text as atomic units whic
 use rtile::prelude::*;
 use std::collections::BTreeMap;
 
+fn main() {
+    codegen();
+}
+
 fn codegen() {
     tp!(
         struct_def,
@@ -65,7 +69,6 @@ fn codegen() {
             .collect();
         tp!(s_members, t!(val));
         struct_codes.push(ts!("@{struct_def}"));
-
     }
     tp!(
         enum_def,
@@ -119,26 +122,21 @@ fn codegen() {
             .collect();
         tp!(e_members, t!(val));
         enum_codes.push(ts!("@{enum_def}"));
-
     }
     struct_codes
-    .into_iter()
-    .for_each(|code_item| println!("{code_item}\n"));
+        .into_iter()
+        .for_each(|code_item| println!("{code_item}\n"));
     enum_codes
         .into_iter()
         .for_each(|code_item| println!("{code_item}\n"));
 }
-
-fn main() {
-    codegen();
-}
 ```
 
-## Output
+## Formatted output
 
 ```rust
 #[derive(Default, Debug)]
-pub struct Address{
+pub struct Address {
     pub street: String,
     pub city: String,
     pub state: String,
@@ -146,7 +144,7 @@ pub struct Address{
 }
 
 #[derive(Default, Debug)]
-pub struct Person{
+pub struct Person {
     pub name: String,
     pub age: u32,
     pub address: Vec<Address>,
@@ -154,14 +152,14 @@ pub struct Person{
 }
 
 #[derive(Default, Debug)]
-pub struct Properties{
+pub struct Properties {
     pub gender: Gender,
     pub kids: Option<u8>,
     pub other_details: OtherDetails,
 }
 
 #[derive(Debug)]
-pub enum EmploymentStatus{
+pub enum EmploymentStatus {
     Employed,
     Unemployed,
     Employer,
@@ -170,14 +168,17 @@ pub enum EmploymentStatus{
 }
 
 #[derive(Debug)]
-pub enum Gender{
+pub enum Gender {
     Unknown,
     Male,
     Female,
 }
 
 #[derive(Debug)]
-pub enum OtherDetails{
-    Miscellaneous{education: Option<String>, employment_status: EmploymentStatus,},
+pub enum OtherDetails {
+    Miscellaneous {
+        education: Option<String>,
+        employment_status: EmploymentStatus,
+    },
 }
 ```
