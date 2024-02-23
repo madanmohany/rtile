@@ -1205,7 +1205,7 @@ fn find_inner_tiles(
 
 fn identify_any_missing_inner_tiles(
     tile_name: Option<String>,
-    tile_lns: &Vec<String>,
+    tile_lns: &[String],
     processed_tiles: &mut HashSet<String>,
     missing_inner_tiles: &mut HashSet<String>,
 ) {
@@ -1248,7 +1248,7 @@ fn identify_any_missing_inner_tiles(
 
 fn get_blank_inner_tiles_names(
     tile_name: Option<String>,
-    tile_lns: &Vec<String>,
+    tile_lns: &[String],
     processed_tiles: &mut HashSet<String>,
     blank_inner_tiles: &mut Vec<String>,
 ) {
@@ -1388,7 +1388,7 @@ impl RTile {
         .join("\n")
     }
 
-    pub fn join<T: Display + Debug>(&self, x: &Vec<T>, last: Option<RTile>) -> Self {
+    pub fn join<T: Display + Debug>(&self, x: &[T], last: Option<RTile>) -> Self {
         let mut res = RTile::new(vec![]);
         for (idx, item) in x.iter().enumerate() {
             match item {
@@ -1419,7 +1419,7 @@ impl RTile {
         }
     }
 
-    pub fn vjoin<T: Display + Debug>(&self, x: &Vec<T>, inline: bool, last: Option<RTile>) -> Self {
+    pub fn vjoin<T: Display + Debug>(&self, x: &[T], inline: bool, last: Option<RTile>) -> Self {
         let last = last.unwrap_or_else(|| RTile::new(vec![]));
         let mut res = RTile::new(vec![]);
         for (idx, item) in x.iter().enumerate() {
@@ -1553,7 +1553,7 @@ impl RTile {
     }
 }
 
-fn create_blank_tiles_of_any_missing_inner_tiles(name: Option<String>, lns: &Vec<String>) {
+fn create_blank_tiles_of_any_missing_inner_tiles(name: Option<String>, lns: &[String]) {
     let mut processed_tiles: HashSet<String> = HashSet::new();
     let mut missing_inner_tiles: HashSet<String> = HashSet::new();
     identify_any_missing_inner_tiles(name, lns, &mut processed_tiles, &mut missing_inner_tiles);

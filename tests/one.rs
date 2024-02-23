@@ -157,61 +157,44 @@ mod tests {
         let _nine = tp!(ut5_nine, "@{ut5_eight}");
         let _ten = tp!(ut5_ten, "@{ut5_nine}");
         let h = t!("@{ut5_ten}");
-        let tile = (t!(",")).join(&[t!("square"), t!("circle"), t!("triangle")].to_vec(), None);
+        let tile = (t!(",")).join(&[t!("square"), t!("circle"), t!("triangle")], None);
         assert_eq!(tile.to_string(), "square,circle,triangle");
 
         tp!(ut5_one, "_");
 
-        let tile = (t!(",")).join(
-            &[t!("square"), t!("circle"), t!("triangle")].to_vec(),
-            Some(h),
-        );
+        let tile = (t!(",")).join(&[t!("square"), t!("circle"), t!("triangle")], Some(h));
         assert_eq!(tile.to_string(), "square,circle,triangle_");
     }
 
     #[test]
     fn test_join() {
-        let tile = (t!(",")).join(&[t!("square"), t!("circle"), t!("triangle")].to_vec(), None);
+        let tile = (t!(",")).join(&[t!("square"), t!("circle"), t!("triangle")], None);
         assert_eq!(tile.to_string(), "square,circle,triangle");
 
         let h = t!(";");
-        let tile = (t!(",")).join(
-            &[t!("square"), t!("circle"), t!("triangle")].to_vec(),
-            Some(h),
-        );
+        let tile = (t!(",")).join(&[t!("square"), t!("circle"), t!("triangle")], Some(h));
         assert_eq!(tile.to_string(), "square,circle,triangle;");
     }
 
     #[test]
     fn test_vjoin() {
-        let tile = (t!(",")).vjoin(
-            &[t!("square"), t!("circle"), t!("triangle")].to_vec(),
-            true,
-            None,
-        );
+        let tile = (t!(",")).vjoin(&[t!("square"), t!("circle"), t!("triangle")], true, None);
         assert_eq!(tile.to_string(), "square,\ncircle,\ntriangle");
 
-        let tile = (t!("----------")).vjoin(
-            &[t!("square"), t!("circle"), t!("triangle")].to_vec(),
-            false,
-            None,
-        );
+        let tile =
+            (t!("----------")).vjoin(&[t!("square"), t!("circle"), t!("triangle")], false, None);
         assert_eq!(
             tile.to_string(),
             "square\n----------\ncircle\n----------\ntriangle"
         );
 
         let h = t!(";");
-        let tile = (t!(",")).vjoin(
-            &[t!("square"), t!("circle"), t!("triangle")].to_vec(),
-            true,
-            Some(h),
-        );
+        let tile = (t!(",")).vjoin(&[t!("square"), t!("circle"), t!("triangle")], true, Some(h));
         assert_eq!(tile.to_string(), "square,\ncircle,\ntriangle;");
 
         let h = t!(";");
         let tile = (t!("----------")).vjoin(
-            &[t!("square"), t!("circle"), t!("triangle")].to_vec(),
+            &[t!("square"), t!("circle"), t!("triangle")],
             false,
             Some(h),
         );
@@ -572,8 +555,8 @@ mod tests {
 
     #[test]
     fn test_example_3() {
-        let arglist = [t!("foo"), t!("bar"), t!("baz")].to_vec();
-        let typelist = [t!("int"), t!("char*"), t!("struct quux")].to_vec();
+        let arglist = [t!("foo"), t!("bar"), t!("baz")];
+        let typelist = [t!("int"), t!("char*"), t!("struct quux")];
 
         let argtile = t!("").vjoin(&arglist, true, None);
         stp!(tex3_argtile, argtile);

@@ -2,6 +2,8 @@
 
 rtile provides a way to work with rectangular areas of text as atomic units which can be used for code generation
 
+refer to the tests folder in the github repo for examples
+
 ## How to use
 
 ```rust
