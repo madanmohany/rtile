@@ -1392,10 +1392,7 @@ impl RTile {
         let mut res = RTile::new(vec![]);
         for (idx, item) in x.iter().enumerate() {
             match item {
-                i if type_name::<T>() == "&String" => {
-                    res += RTile::construct_from_str(i.to_string().as_str())
-                }
-                i if type_name::<T>() == "&RTile" => {
+                i if type_name::<T>() == "rtile::RTile" => {
                     let lns = i
                         .to_string()
                         .split('\n')
@@ -1424,19 +1421,7 @@ impl RTile {
         let mut res = RTile::new(vec![]);
         for (idx, item) in x.iter().enumerate() {
             match item {
-                i if type_name::<T>() == "&String" => {
-                    res |= RTile::construct_from_str(i.to_string().as_str())
-                        + if inline {
-                            if idx < x.len() - 1 {
-                                self.clone()
-                            } else {
-                                last.clone()
-                            }
-                        } else {
-                            RTile::construct_from_str("")
-                        }
-                }
-                i if type_name::<T>() == "&RTile" => {
+                i if type_name::<T>() == "rtile::RTile" => {
                     let lns = i
                         .to_string()
                         .split('\n')

@@ -167,13 +167,57 @@ mod tests {
     }
 
     #[test]
-    fn test_join() {
+    fn test_join_rtile() {
         let tile = (t!(",")).join(&[t!("square"), t!("circle"), t!("triangle")], None);
         assert_eq!(tile.to_string(), "square,circle,triangle");
 
         let h = t!(";");
         let tile = (t!(",")).join(&[t!("square"), t!("circle"), t!("triangle")], Some(h));
         assert_eq!(tile.to_string(), "square,circle,triangle;");
+    }
+
+    #[test]
+    fn test_join_string() {
+        let tile = (t!(",")).join(
+            &[
+                "square".to_string(),
+                "circle".to_string(),
+                "triangle".to_string(),
+            ],
+            None,
+        );
+        assert_eq!(tile.to_string(), "square,circle,triangle");
+
+        let h = t!(";");
+        let tile = (t!(",")).join(
+            &[
+                "square".to_string(),
+                "circle".to_string(),
+                "triangle".to_string(),
+            ],
+            Some(h),
+        );
+        assert_eq!(tile.to_string(), "square,circle,triangle;");
+    }
+
+    #[test]
+    fn test_join_str() {
+        let tile = (t!(",")).join(&["square", "circle", "triangle"], None);
+        assert_eq!(tile.to_string(), "square,circle,triangle");
+
+        let h = t!(";");
+        let tile = (t!(",")).join(&["square", "circle", "triangle"], Some(h));
+        assert_eq!(tile.to_string(), "square,circle,triangle;");
+    }
+
+    #[test]
+    fn test_join_numbers() {
+        let tile = (t!(",")).join(&[1, 2, 3], None);
+        assert_eq!(tile.to_string(), "1,2,3");
+
+        let h = t!(";");
+        let tile = (t!(",")).join(&[1, 2, 3], Some(h));
+        assert_eq!(tile.to_string(), "1,2,3;");
     }
 
     #[test]
@@ -201,6 +245,110 @@ mod tests {
         assert_eq!(
             tile.to_string(),
             "square\n----------\ncircle\n----------\ntriangle\n;"
+        );
+    }
+
+    #[test]
+    fn test_vjoin_rtile() {
+        let tile = (t!(",")).vjoin(&[t!("square"), t!("circle"), t!("triangle")], true, None);
+        assert_eq!(
+            tile.to_string(),
+            ts!("
+                                        square,
+                                        circle,
+                                        triangle")
+        );
+
+        let h = t!(";");
+        let tile = (t!(",")).vjoin(&[t!("square"), t!("circle"), t!("triangle")], true, Some(h));
+        assert_eq!(
+            tile.to_string(),
+            ts!("
+                                        square,
+                                        circle,
+                                        triangle;")
+        );
+    }
+
+    #[test]
+    fn test_vjoin_string() {
+        let tile = (t!(",")).vjoin(
+            &[
+                "square".to_string(),
+                "circle".to_string(),
+                "triangle".to_string(),
+            ],
+            true,
+            None,
+        );
+        assert_eq!(
+            tile.to_string(),
+            ts!("
+                                        square,
+                                        circle,
+                                        triangle")
+        );
+
+        let h = t!(";");
+        let tile = (t!(",")).vjoin(
+            &[
+                "square".to_string(),
+                "circle".to_string(),
+                "triangle".to_string(),
+            ],
+            true,
+            Some(h),
+        );
+        assert_eq!(
+            tile.to_string(),
+            ts!("
+                                        square,
+                                        circle,
+                                        triangle;")
+        );
+    }
+
+    #[test]
+    fn test_vjoin_str() {
+        let tile = (t!(",")).vjoin(&["square", "circle", "triangle"], true, None);
+        assert_eq!(
+            tile.to_string(),
+            ts!("
+                                        square,
+                                        circle,
+                                        triangle")
+        );
+
+        let h = t!(";");
+        let tile = (t!(",")).vjoin(&["square", "circle", "triangle"], true, Some(h));
+        assert_eq!(
+            tile.to_string(),
+            ts!("
+                                        square,
+                                        circle,
+                                        triangle;")
+        );
+    }
+
+    #[test]
+    fn test_vjoin_numbers() {
+        let tile = (t!(",")).vjoin(&[1, 2, 3], true, None);
+        assert_eq!(
+            tile.to_string(),
+            ts!("
+                                        1,
+                                        2,
+                                        3")
+        );
+
+        let h = t!(";");
+        let tile = (t!(",")).vjoin(&[1, 2, 3], true, Some(h));
+        assert_eq!(
+            tile.to_string(),
+            ts!("
+                                        1,
+                                        2,
+                                        3;")
         );
     }
 
