@@ -203,7 +203,7 @@ impl MacroAttributeForT for Vec<String> {
 macro_rules! tf {
     ($t: expr) => {{
         $t.to_string()
-            .split("\n")
+            .split('\n')
             .collect::<Vec<&str>>()
             .iter()
             .map(|&item| item.trim())
@@ -498,13 +498,18 @@ macro_rules! sr {
 /// ts! is to expand any inner tiles and to trim the white spaces around the block of text and return a String
 /// ```
 /// use rtile::prelude::*;
-/// tp!(tile_one, "   one   ");
+/// tp!(tile_one, "   one hundred   ");
 /// tp!(tile_two, "   two   ");
 /// let result = ts!("
 ///                 @{tile_one}
 ///                 @{tile_two}
 ///                 ");
-/// assert_eq!(result, "one\ntwo");
+/// assert_eq!(result, "one hundred\ntwo");
+///
+/// let result = ts!("
+///                     @{tile_one}
+///                     @{tile_two}    ");
+/// assert_eq!(result, "one hundred\ntwo");
 /// ```
 #[macro_export]
 macro_rules! ts {
@@ -579,7 +584,7 @@ impl MacroAttributeForK for Vec<String> {
 /// use rtile::prelude::*;
 /// let v1 = vec!["  one  ", "  two  ", "  three  "];
 /// let val = k!(v1);
-/// assert_eq!(kf!(val), "  one    two    three  ");
+/// assert_eq!(kf!(val), "  one      two      three  ");
 ///
 /// let v1 = vec!["  one  ", "  two  ", "  three  "];
 /// let v2 = vec!["  1  ", "  2  ", "  3  "];
@@ -590,7 +595,7 @@ impl MacroAttributeForK for Vec<String> {
 #[macro_export]
 macro_rules! kf {
     ($t: expr) => {{
-        $t.to_string().split("\n").collect::<Vec<&str>>().join("")
+        $t.to_string().split('\n').collect::<Vec<&str>>().join("")
     }};
 }
 
@@ -601,7 +606,7 @@ macro_rules! kf {
 ///
 /// let v1 = vec!["  one  ", "  two  ", "  three  "];
 /// let val = k!(v1);
-/// assert_eq!(val.to_string(), "  one  \n  two  \n  three  ");
+/// assert_eq!(val.to_string(), "  one    \n  two    \n  three  ");
 /// ```
 #[macro_export]
 macro_rules! k {
@@ -1389,7 +1394,7 @@ impl RTile {
     }
 
     pub fn join<T: Display + Debug>(&self, x: &[T], last: Option<RTile>) -> Self {
-        let mut res = RTile::new(vec![]);
+        let mut res = RTile::new_without_trimming(vec![]);
         for (idx, item) in x.iter().enumerate() {
             match item {
                 i if type_name::<T>() == "rtile::RTile" => {
@@ -1400,7 +1405,7 @@ impl RTile {
                         .iter()
                         .map(|&item| item.to_string())
                         .collect();
-                    res += RTile::new(lns);
+                    res += RTile::new_without_trimming(lns);
                 }
                 i => {
                     res += RTile::construct_from_str(i.to_string().as_str());
@@ -1418,7 +1423,7 @@ impl RTile {
 
     pub fn vjoin<T: Display + Debug>(&self, x: &[T], inline: bool, last: Option<RTile>) -> Self {
         let last = last.unwrap_or_else(|| RTile::new(vec![]));
-        let mut res = RTile::new(vec![]);
+        let mut res = RTile::new_without_trimming(vec![]);
         for (idx, item) in x.iter().enumerate() {
             match item {
                 i if type_name::<T>() == "rtile::RTile" => {
@@ -1429,7 +1434,8 @@ impl RTile {
                         .iter()
                         .map(|&item| item.to_string())
                         .collect();
-                    res |= RTile::new(lns)
+
+                    res |= RTile::new_without_trimming(lns)
                         + if inline {
                             if idx < x.len() - 1 {
                                 self.clone()
@@ -1621,10 +1627,13 @@ impl Display for RTile {
                 .join("\n")
             )
         } else {
+            let ktile_vec = r_format_using_raw_tiles_data(self.lns.join("\n").as_str());
+            let blank_vec = vec![""; ktile_vec.len()];
+            let output = k!(blank_vec) + k!(ktile_vec) + k!(blank_vec);
             write!(
                 f,
                 "{}",
-                r_format_using_raw_tiles_data(self.lns.join("\n").as_str()).join("\n")
+                r_format_using_raw_tiles_data(output.lns.join("\n").as_str()).join("\n")
             )
         }
     }

@@ -306,6 +306,6 @@ mod tests {
         //println!("-----------------");
         //println!("{}", expected_result_one);
         assert_eq!(all_groups.to_string(), expected_result_one);
-        assert_eq!(ct2(&all_groups).to_string(), expected_result_two);
+        assert_eq!(ts!(ct2(&all_groups)), expected_result_two);
     }
 }
